@@ -1,0 +1,26 @@
+name: Build App
+
+on:
+  push:
+    branches: [master, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HOST: ${{ secrets.HOST }}
+      DEPLOY_DIRECTORY: /root/apps/url-shortener
+      CONFIG_PATH: /root/apps/url-shortener/config/prod.yaml
+      ENV_FILE_PATH: /root/apps/url-shortener/config.env
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.4
+      - name: Build app
+        run: |
+          go mod download
+          go build -o url_shortener ./cmd/url-shortener
