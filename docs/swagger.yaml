@@ -1,0 +1,306 @@
+basePath: /
+definitions:
+  request.URL:
+    properties:
+      alias:
+        type: string
+      url:
+        type: string
+    type: object
+  request.UserCreate:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  request.UserLogIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  response.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  response.Success:
+    properties:
+      message:
+        type: string
+    type: object
+  response.Token:
+    properties:
+      token:
+        type: string
+    type: object
+  response.URL:
+    properties:
+      alias:
+        type: string
+      redirects:
+        type: integer
+      url:
+        type: string
+    type: object
+  response.URLCreated:
+    properties:
+      alias:
+        type: string
+      url:
+        type: string
+    type: object
+  response.User:
+    properties:
+      email:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: API Server for URL Shortener Application
+  title: URL Shortener App API
+  version: "1.0"
+paths:
+  /:alias:
+    get:
+      description: redirect from alias to it's url
+      produces:
+      - application/json
+      responses:
+        "308":
+          description: Permanent Redirect
+          schema:
+            type: integer
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Redirect
+      tags:
+      - url
+  /api/session:
+    delete:
+      description: close a session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Success'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - SessionIDAuth: []
+      summary: Close
+      tags:
+      - session
+    post:
+      consumes:
+      - application/json
+      description: create a session
+      parameters:
+      - description: Account credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserLogIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Token'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Create
+      tags:
+      - session
+  /api/url:
+    post:
+      consumes:
+      - application/json
+      description: create an url in database
+      parameters:
+      - description: Url data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.URL'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.URLCreated'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - SessionIDAuth: []
+      summary: Create
+      tags:
+      - url
+  /api/url/:alias:
+    delete:
+      description: delete an url from database
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - SessionIDAuth: []
+      summary: Delete
+      tags:
+      - url
+  /api/user:
+    post:
+      consumes:
+      - application/json
+      description: create a user in database
+      parameters:
+      - description: User data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Create
+      tags:
+      - user
+  /api/user/me:
+    delete:
+      description: delete me in database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Success'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - SessionIDAuth: []
+      summary: Delete me
+      tags:
+      - user
+  /api/user/me/urls:
+    get:
+      description: Get all URLs created by user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.URL'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - SessionIDAuth: []
+      summary: Get URLs
+      tags:
+      - user
+securityDefinitions:
+  SessionIDAuth:
+    in: header
+    name: SessionID
+    type: apiKey
+swagger: "2.0"
