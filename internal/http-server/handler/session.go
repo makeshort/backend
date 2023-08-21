@@ -20,7 +20,7 @@ import (
 // @Success       200  {object}    response.TokenPair
 // @Failure       400  {object}    response.Error
 // @Failure       500  {object}    response.Error
-// @Router        /api/session     [post]
+// @Router        /session         [post]
 func (h *Handler) Login(ctx *gin.Context) {
 	var body request.UserLogIn
 
@@ -56,13 +56,13 @@ func (h *Handler) Login(ctx *gin.Context) {
 // Logout        Close a session
 // @Summary      User logout
 // @Description  Close a session
-// @Security     SessionIDAuth
+// @Security     AccessToken
 // @Tags         session
 // @Produce      json
 // @Success      200  {integer}   integer 1
 // @Failure      401  {object}    response.Error
 // @Failure      500  {object}    response.Error
-// @Router       /api/session     [delete]
+// @Router       /session         [delete]
 func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 	ctx.Header(HeaderAuthorization, "")

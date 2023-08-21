@@ -28,14 +28,11 @@ definitions:
       message:
         type: string
     type: object
-  response.Success:
+  response.TokenPair:
     properties:
-      message:
+      access_token:
         type: string
-    type: object
-  response.Token:
-    properties:
-      token:
+      refresh_token:
         type: string
     type: object
   response.URL:
@@ -61,40 +58,23 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:8081
+host: localhost:8081/api
 info:
   contact: {}
   description: API Server for URL Shortener Application
   title: URL Shortener App API
   version: "1.0"
 paths:
-  /:alias:
-    get:
-      description: redirect from alias to it's url
-      produces:
-      - application/json
-      responses:
-        "308":
-          description: Permanent Redirect
-          schema:
-            type: integer
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Error'
-      summary: Redirect
-      tags:
-      - url
-  /api/session:
+  /session:
     delete:
-      description: close a session
+      description: Close a session
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Success'
+            type: integer
         "401":
           description: Unauthorized
           schema:
@@ -104,14 +84,14 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       security:
-      - SessionIDAuth: []
-      summary: Close
+      - AccessToken: []
+      summary: User logout
       tags:
       - session
     post:
       consumes:
       - application/json
-      description: create a session
+      description: Creates a session
       parameters:
       - description: Account credentials
         in: body
@@ -125,7 +105,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Token'
+            $ref: '#/definitions/response.TokenPair'
         "400":
           description: Bad Request
           schema:
@@ -134,14 +114,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Error'
-      summary: Create
+      summary: User login
       tags:
       - session
-  /api/url:
+  /url:
     post:
       consumes:
       - application/json
-      description: create an url in database
+      description: Creates a URL in database, assigned to user
       parameters:
       - description: Url data
         in: body
@@ -173,22 +153,22 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       security:
-      - SessionIDAuth: []
-      summary: Create
+      - AccessToken: []
+      summary: Create URL
       tags:
       - url
-  /api/url/:alias:
+  /url/:alias:
     delete:
-      description: delete an url from database
+      description: Deletes an url from database
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/response.Success'
-        "400":
-          description: Bad Request
+            type: integer
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/response.Error'
         "403":
@@ -204,15 +184,15 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       security:
-      - SessionIDAuth: []
-      summary: Delete
+      - AccessToken: []
+      summary: Delete URL
       tags:
       - url
-  /api/user:
+  /user:
     post:
       consumes:
       - application/json
-      description: create a user in database
+      description: Creates a user in database
       parameters:
       - description: User data
         in: body
@@ -239,25 +219,21 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Error'
-      summary: Create
+      summary: User registration
       tags:
       - user
-  /api/user/me:
+  /user/me:
     delete:
-      description: delete me in database
+      description: Delete me from database
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Success'
+            type: integer
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Error'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/response.Error'
         "500":
@@ -265,11 +241,11 @@ paths:
           schema:
             $ref: '#/definitions/response.Error'
       security:
-      - SessionIDAuth: []
+      - AccessToken: []
       summary: Delete me
       tags:
       - user
-  /api/user/me/urls:
+  /user/me/urls:
     get:
       description: Get all URLs created by user
       produces:
@@ -285,22 +261,18 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/response.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.Error'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Error'
       security:
-      - SessionIDAuth: []
+      - AccessToken: []
       summary: Get URLs
       tags:
       - user
 securityDefinitions:
-  SessionIDAuth:
+  AccessToken:
     in: header
-    name: SessionID
+    name: Authorization
     type: apiKey
 swagger: "2.0"

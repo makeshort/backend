@@ -19,11 +19,11 @@ import (
 // @title                        URL Shortener App API
 // @version                      1.0
 // @description                  API Server for URL Shortener Application
-// @host                         localhost:8081
+// @host                         localhost:8081/api
 // @BasePath                     /
-// @securityDefinitions.apikey   SessionIDAuth
+// @securityDefinitions.apikey   AccessToken
 // @in                           header
-// @name                         SessionID
+// @name                         Authorization
 func main() {
 	cfg := config.MustLoad()
 	log := initLogger(cfg.Env)
@@ -42,7 +42,7 @@ func main() {
 		}
 	}()
 
-	tokenService := token.New(log, storage, cfg.JwtSigningKey)
+	tokenService := token.New(log, storage, cfg.JwtAccessSecret, cfg.JwtRefreshSecret)
 	h := handler.New(log, storage, hasher, tokenService)
 
 	server := &http.Server{

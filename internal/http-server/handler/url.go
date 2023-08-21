@@ -3,8 +3,8 @@ package handler
 import (
 	"backend/internal/http-server/request"
 	"backend/internal/http-server/response"
-	al "backend/internal/lib/alias"
 	"backend/internal/lib/logger/sl"
+	"backend/internal/lib/random"
 	"backend/internal/storage"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -19,10 +19,10 @@ type CreateURLRequestBody struct {
 	Alias string `json:"alias,omitempty"`
 }
 
-// CreateURL     Creates a URL in database. Assigned to user
+// CreateURL     Creates a URL in database, assigned to user
 // @Summary      Create URL
-// @Description  Creates a URL in database. Assigned to user
-// @Security     SessionIDAuth
+// @Description  Creates a URL in database, assigned to user
+// @Security     AccessToken
 // @Tags         url
 // @Accept       json
 // @Produce      json
@@ -32,7 +32,7 @@ type CreateURLRequestBody struct {
 // @Failure      401  {object}    response.Error
 // @Failure      409  {object}    response.Error
 // @Failure      500  {object}    response.Error
-// @Router       /api/url         [post]
+// @Router       /url             [post]
 func (h *Handler) CreateURL(ctx *gin.Context) {
 	var body request.URL
 
@@ -49,15 +49,15 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		return
 	}
 
-	var alias string
-	if body.Alias == "" {
-		alias = al.Generate(AliasLength)
+	alias := body.Alias
+	if alias == "" {
+		alias = random.Generate(AliasLength)
 	}
 
 	id := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
+		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err), slog.String("id", id))
 		response.InvalidAuthToken(ctx)
 		return
 	}
@@ -85,7 +85,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 // DeleteURL     Deletes a URL
 // @Summary      Delete URL
 // @Description  Deletes an url from database
-// @Security     SessionIDAuth
+// @Security     AccessToken
 // @Tags         url
 // @Produce      json
 // @Success      200  {integer}     integer 1
@@ -93,7 +93,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 // @Failure      403  {object}      response.Error
 // @Failure      404  {object}      response.Error
 // @Failure      500  {object}      response.Error
-// @Router       /api/url/:alias    [delete]
+// @Router       /url/:alias        [delete]
 func (h *Handler) DeleteURL(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 

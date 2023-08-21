@@ -39,7 +39,7 @@ func New(mongoURI string, env string) *Mongo {
 	_, err = urls.Indexes().CreateOne(
 		context.Background(),
 		mongo.IndexModel{
-			Keys:    bson.D{{Key: "link", Value: 1}},
+			Keys:    bson.D{{Key: "alias", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		},
 	)

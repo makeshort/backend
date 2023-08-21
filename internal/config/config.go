@@ -15,11 +15,12 @@ const (
 )
 
 type Config struct {
-	Env           string     `yaml:"env" env-required:"true"`
-	MongoURI      string     `yaml:"mongo_uri" env-required:"true"`
-	HashSalt      string     `yaml:"hash_salt"`
-	JwtSigningKey string     `yaml:"jwt_signing_key" env-required:"true"`
-	HTTPServer    HTTPServer `yaml:"http_server" env-required:"true"`
+	Env              string     `yaml:"env" env-required:"true"`
+	MongoURI         string     `yaml:"mongo_uri" env-required:"true"`
+	HashSalt         string     `yaml:"hash_salt"`
+	JwtAccessSecret  string     `yaml:"jwt_access_secret" env-required:"true"`
+	JwtRefreshSecret string     `yaml:"jwt_refresh_secret" env-required:"true"`
+	HTTPServer       HTTPServer `yaml:"http_server" env-required:"true"`
 }
 
 type HTTPServer struct {

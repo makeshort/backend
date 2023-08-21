@@ -24,7 +24,7 @@ import (
 // @Failure      400  {object}    response.Error
 // @Failure      409  {object}    response.Error
 // @Failure      500  {object}    response.Error
-// @Router       /api/user        [post]
+// @Router       /user            [post]
 func (h *Handler) Register(ctx *gin.Context) {
 	var body request.UserCreate
 
@@ -63,13 +63,13 @@ func (h *Handler) Register(ctx *gin.Context) {
 // DeleteMe      Delete me from database
 // @Summary      Delete me
 // @Description  Delete me from database
-// @Security     SessionIDAuth
+// @Security     AccessToken
 // @Tags         user
 // @Produce      json
 // @Success      200  {integer}   integer 1
 // @Failure      401  {object}    response.Error
 // @Failure      500  {object}    response.Error
-// @Router       /api/user/me     [delete]
+// @Router       /user/me         [delete]
 func (h *Handler) DeleteMe(ctx *gin.Context) {
 	hexUserID := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
@@ -99,14 +99,14 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 
 // GetMyURLs     Gets all url documents assigned to given UserID.
 // @Summary      Get URLs
-// @Security     SessionIDAuth
+// @Security     AccessToken
 // @Description  Get all URLs created by user
 // @Tags         user
 // @Produce      json
 // @Success      200  {array}         response.URL
 // @Failure      401  {object}        response.Error
 // @Failure      500  {object}        response.Error
-// @Router       /api/user/me/urls    [get]
+// @Router       /user/me/urls        [get]
 func (h *Handler) GetMyURLs(ctx *gin.Context) {
 	hexUserID := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
