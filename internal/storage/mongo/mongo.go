@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-type Mongo struct {
+type Storage struct {
 	Client   *mongo.Client
 	urls     *mongo.Collection
 	users    *mongo.Collection
 	sessions *mongo.Collection
 }
 
-// New returns a new Mongo instance.
-func New(mongoURI string, env string) *Mongo {
+// New returns a new Storage instance.
+func New(mongoURI string, env string) *Storage {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -61,13 +61,13 @@ func New(mongoURI string, env string) *Mongo {
 
 	sessions := db.Collection("sessions")
 
-	return &Mongo{Client: client, urls: urls, users: users, sessions: sessions}
+	return &Storage{Client: client, urls: urls, users: users, sessions: sessions}
 }
 
 // CreateURL creates a URL document in database.
-func (m *Mongo) CreateURL(ctx context.Context, link string, alias string, userID primitive.ObjectID) (primitive.ObjectID, error) {
+func (s *Storage) CreateURL(ctx context.Context, link string, alias string, userID primitive.ObjectID) (primitive.ObjectID, error) {
 	datetime := getPrimitiveDatetimeNow()
-	doc, err := m.urls.InsertOne(ctx, storage.URL{
+	doc, err := s.urls.InsertOne(ctx, storage.URL{
 		Link:      link,
 		Alias:     alias,
 		UserID:    userID,
@@ -87,8 +87,8 @@ func (m *Mongo) CreateURL(ctx context.Context, link string, alias string, userID
 
 // GetURL returns a storage.URL object from database.
 // If url does not found, function will return a storage.ErrURLNotFound error.
-func (m *Mongo) GetURL(ctx context.Context, alias string) (storage.URL, error) {
-	doc := m.urls.FindOne(ctx, bson.D{{"alias", alias}})
+func (s *Storage) GetURL(ctx context.Context, alias string) (storage.URL, error) {
+	doc := s.urls.FindOne(ctx, bson.D{{"alias", alias}})
 	var url storage.URL
 	if err := doc.Decode(&url); err != nil {
 		return storage.URL{}, storage.ErrURLNotFound
@@ -97,9 +97,9 @@ func (m *Mongo) GetURL(ctx context.Context, alias string) (storage.URL, error) {
 }
 
 // IncrementUrlCounter increments redirects field of storage.URL document in database.
-func (m *Mongo) IncrementUrlCounter(ctx context.Context, alias string) error {
+func (s *Storage) IncrementUrlCounter(ctx context.Context, alias string) error {
 	datetime := getPrimitiveDatetimeNow()
-	_, err := m.urls.UpdateOne(ctx,
+	_, err := s.urls.UpdateOne(ctx,
 		bson.D{{"alias", alias}},
 		bson.D{{"$inc", bson.D{{"redirects", 1}}},
 			{"$set", bson.D{{"updated_at", datetime}}}})
@@ -110,8 +110,8 @@ func (m *Mongo) IncrementUrlCounter(ctx context.Context, alias string) error {
 }
 
 // DeleteURL deletes URL from database.
-func (m *Mongo) DeleteURL(ctx context.Context, alias string) error {
-	res, err := m.urls.DeleteOne(ctx, bson.D{{"alias", alias}})
+func (s *Storage) DeleteURL(ctx context.Context, alias string) error {
+	res, err := s.urls.DeleteOne(ctx, bson.D{{"alias", alias}})
 	if res.DeletedCount == 0 {
 		return storage.ErrURLNotFound
 	}
@@ -119,9 +119,9 @@ func (m *Mongo) DeleteURL(ctx context.Context, alias string) error {
 }
 
 // CreateUser creates a storage.User document in database.
-func (m *Mongo) CreateUser(ctx context.Context, email string, username string, passwordHash string) (primitive.ObjectID, error) {
+func (s *Storage) CreateUser(ctx context.Context, email string, username string, passwordHash string) (primitive.ObjectID, error) {
 	datetime := getPrimitiveDatetimeNow()
-	doc, err := m.users.InsertOne(ctx, storage.User{
+	doc, err := s.users.InsertOne(ctx, storage.User{
 		Email:        email,
 		Username:     username,
 		PasswordHash: passwordHash,
@@ -141,8 +141,8 @@ func (m *Mongo) CreateUser(ctx context.Context, email string, username string, p
 
 // GetUser returns a storage.User object from database.
 // If user does not found, function will return a storage.ErrUserNotFound error.
-func (m *Mongo) GetUser(ctx context.Context, email string, passwordHash string) (storage.User, error) {
-	doc := m.users.FindOne(ctx, bson.D{{"email", email}, {"password_hash", passwordHash}})
+func (s *Storage) GetUser(ctx context.Context, email string, passwordHash string) (storage.User, error) {
+	doc := s.users.FindOne(ctx, bson.D{{"email", email}, {"password_hash", passwordHash}})
 
 	var user storage.User
 
@@ -153,8 +153,8 @@ func (m *Mongo) GetUser(ctx context.Context, email string, passwordHash string) 
 }
 
 // GetUserURLs get and return all storage.URL documents in database, with given owner.
-func (m *Mongo) GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]storage.URL, error) {
-	cur, err := m.urls.Find(ctx, bson.D{{"user_id", userID}})
+func (s *Storage) GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]storage.URL, error) {
+	cur, err := s.urls.Find(ctx, bson.D{{"user_id", userID}})
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +173,8 @@ func (m *Mongo) GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]s
 }
 
 // DeleteUser deletes a user from database. If user does not found, function will return a storage.ErrUserNotFound error.
-func (m *Mongo) DeleteUser(ctx context.Context, userID primitive.ObjectID) error {
-	res, err := m.users.DeleteOne(ctx, bson.D{{"_id", userID}})
+func (s *Storage) DeleteUser(ctx context.Context, userID primitive.ObjectID) error {
+	res, err := s.users.DeleteOne(ctx, bson.D{{"_id", userID}})
 	if res.DeletedCount == 0 {
 		return storage.ErrUserNotFound
 	}
