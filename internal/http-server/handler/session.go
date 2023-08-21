@@ -63,7 +63,7 @@ func (h *Handler) CreateSession(ctx *gin.Context) {
 func (h *Handler) CloseSession(ctx *gin.Context) {
 	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 	ctx.Header(HeaderAuthorization, "")
-	
+
 	// TODO: Add refresh / access token to blacklist
 
 	ctx.Status(http.StatusOK)
