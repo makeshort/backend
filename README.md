@@ -85,7 +85,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-### Create user: **POST /api/user**
+### Registration (create user): **POST /api/user**
 
 **Body:**
 
@@ -105,9 +105,10 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 **Possible errors:**
 
-| Code | Description                          |
-|:-----|:-------------------------------------|
-| 400  | Bad request. Missing required fields |
+| Code | Description                                     |
+|:-----|:------------------------------------------------|
+| 400  | Bad request. Missing required fields            |
+| 409  | User with this email or username already exists |
 
 ### Dleete me: **DELETE /api/user/me**
 
@@ -123,6 +124,13 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 ### Get my URLs: **GET /api/user/me/urls**
 
 **Success response:** `200 OK`
+
+Array of URL entities:
+
+| Field | Type   |
+|:------|:-------|
+| url   | string |
+| alias | string |
 
 **Possible errors:**
 

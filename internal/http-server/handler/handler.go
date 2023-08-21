@@ -47,7 +47,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		api.POST("/url", h.CheckAuth, h.CreateURL)
 		// api.PATCH("/url/:alias", h.CheckAuth, h.UpdateURL)
 		api.DELETE("/url/:alias", h.CheckAuth, h.DeleteURL)
-		api.POST("/user", h.CreateUser)
+		api.POST("/user", h.Register)
 		// api.PATCH("/user/me", h.CheckAuth, h.UpdateMe)
 		api.DELETE("/user/me", h.CheckAuth, h.DeleteMe)
 		api.GET("/user/me/urls", h.CheckAuth, h.GetMyURLs)

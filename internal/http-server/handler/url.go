@@ -79,7 +79,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		Url:   body.Url,
 		Alias: alias,
 	})
-	h.log.Info("url saved", slog.String("alias", alias), slog.String("url", parsedUrl))
+	h.log.Info("url saved", slog.String("url", parsedUrl), slog.String("alias", alias))
 }
 
 // DeleteURL     Deletes a URL
@@ -157,7 +157,7 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 		h.log.Error("error while incrementing requests counter", slog.String("alias", alias))
 	}
 
-	h.log.Info("redirected", slog.String("alias", alias), slog.String("url", url.Link))
+	h.log.Info("redirected", slog.String("url", url.Link), slog.String("alias", alias))
 }
 
 func validateUrl(rawUrl string) (string, bool) {
