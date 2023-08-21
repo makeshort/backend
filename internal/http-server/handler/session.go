@@ -1,14 +1,13 @@
 package handler
 
 import (
-	"backend/internal/http-server/constraints"
 	"backend/internal/http-server/request"
 	"backend/internal/http-server/response"
 	"backend/internal/lib/logger/sl"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/exp/slog"
 	"net/http"
+	"time"
 )
 
 // CreateSession  Creates a session
@@ -33,16 +32,22 @@ func (h *Handler) CreateSession(ctx *gin.Context) {
 
 	user, err := h.storage.GetUser(ctx, body.Email, h.hasher.Create(body.Password))
 	if err != nil {
-		response.SendError(ctx, http.StatusBadRequest, "User not found")
+		response.SendError(ctx, http.StatusNotFound, "user not found")
 		return
 	}
 
-	sessionID, err := h.storage.CreateSession(ctx, user.ID)
+	tokenPair, err := h.tokenService.GenerateTokenPair(user.ID.Hex())
 	if err != nil {
-		response.SendError(ctx, http.StatusInternalServerError, "Can't create session")
+		response.SendError(ctx, http.StatusInternalServerError, "can't create token")
+		return
 	}
 
-	ctx.JSON(http.StatusOK, response.Session{SessionID: sessionID.Hex()})
+	cookieMaxAge := 30 * 24 * time.Hour
+
+	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(cookieMaxAge.Seconds()), "/", "localhost", false, true)
+	ctx.Header(HeaderAuthorization, fmt.Sprintf("Bearer %s", tokenPair.AccessToken))
+
+	ctx.Status(http.StatusOK)
 }
 
 // CloseSession  Close a session
@@ -56,21 +61,9 @@ func (h *Handler) CreateSession(ctx *gin.Context) {
 // @Failure      500  {object}    response.Error
 // @Router       /api/session     [delete]
 func (h *Handler) CloseSession(ctx *gin.Context) {
-	hexSessionID := ctx.GetHeader(constraints.HeaderSessionID)
+	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 
-	sessionID, err := primitive.ObjectIDFromHex(hexSessionID)
-	if err != nil {
-		h.log.Error("can't parse hex session id to primitive.ObjectID")
-		response.SendError(ctx, http.StatusUnauthorized, "Session ID is invalid")
-		return
-	}
-
-	err = h.storage.DeleteSession(ctx, sessionID)
-	if err != nil {
-		h.log.Error("can't close session", slog.String("hex_session_id", hexSessionID), sl.Err(err))
-		response.SendError(ctx, http.StatusInternalServerError, "Can't log out")
-		return
-	}
+	// TODO: Add refresh / access token to blacklist
 
 	ctx.Status(http.StatusOK)
 }

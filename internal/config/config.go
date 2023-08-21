@@ -15,17 +15,17 @@ const (
 )
 
 type Config struct {
-	Env        string     `yaml:"env" env-required:"true"`
-	MongoURI   string     `yaml:"mongo_uri" env-required:"true"`
-	HashSalt   string     `yaml:"hash_salt"`
-	HTTPServer HTTPServer `yaml:"http_server" env-required:"true"`
+	Env           string     `yaml:"env" env-required:"true"`
+	MongoURI      string     `yaml:"mongo_uri" env-required:"true"`
+	HashSalt      string     `yaml:"hash_salt"`
+	JwtSigningKey string     `yaml:"jwt_signing_key" env-required:"true"`
+	HTTPServer    HTTPServer `yaml:"http_server" env-required:"true"`
 }
 
 type HTTPServer struct {
-	Address       string        `yaml:"address" env-required:"true"`
-	Timeout       time.Duration `yaml:"timeout" env-default:"4s"`
-	IdleTimeout   time.Duration `yaml:"idle_timeout" env-default:"60s"`
-	JWTSigningKey string        `yaml:"jwt_signing_key" env-required:"true"`
+	Address     string        `yaml:"address" env-required:"true"`
+	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
+	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
 }
 
 // MustLoad loads config to a new Config instance and return it.

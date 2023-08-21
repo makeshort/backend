@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"backend/internal/http-server/constraints"
 	"backend/internal/http-server/request"
 	"backend/internal/http-server/response"
 	al "backend/internal/lib/alias"
@@ -51,10 +50,10 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 	}
 
 	if body.Alias == "" {
-		body.Alias = al.Generate(constraints.AliasLength)
+		body.Alias = al.Generate(AliasLength)
 	}
 
-	id := ctx.GetString(constraints.ContextUserID)
+	id := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
@@ -97,7 +96,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 func (h *Handler) DeleteURL(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
-	id := ctx.GetString(constraints.ContextUserID)
+	id := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))

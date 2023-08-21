@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"backend/internal/http-server/constraints"
 	"backend/internal/http-server/request"
 	"backend/internal/http-server/response"
 	"backend/internal/lib/logger/sl"
@@ -73,7 +72,7 @@ func (h *Handler) CreateUser(ctx *gin.Context) {
 // @Failure      500  {object}    response.Error
 // @Router       /api/user/me         [delete]
 func (h *Handler) DeleteMe(ctx *gin.Context) {
-	hexUserID := ctx.GetString(constraints.ContextUserID)
+	hexUserID := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
 
 	if err != nil {
@@ -111,7 +110,7 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 // @Failure      500  {object}        response.Error
 // @Router       /api/user/me/urls    [get]
 func (h *Handler) GetMyURLs(ctx *gin.Context) {
-	hexUserID := ctx.GetString(constraints.ContextUserID)
+	hexUserID := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))

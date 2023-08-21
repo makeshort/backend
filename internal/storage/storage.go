@@ -41,9 +41,6 @@ type Storage interface {
 	GetUser(ctx context.Context, email string, passwordHash string) (User, error)
 	GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]URL, error)
 	DeleteUser(ctx context.Context, userID primitive.ObjectID) error
-	CreateSession(ctx context.Context, userID primitive.ObjectID) (primitive.ObjectID, error)
-	DeleteSession(ctx context.Context, sessionID primitive.ObjectID) error
-	IsSessionActive(ctx context.Context, sessionID primitive.ObjectID) (isSessionActive bool, ownerID primitive.ObjectID)
 }
 
 var (

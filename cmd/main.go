@@ -5,10 +5,10 @@ import (
 	"backend/internal/config"
 	"backend/internal/http-server/handler"
 	"backend/internal/lib/hash"
-	"backend/internal/lib/jsonwebtoken"
 	"backend/internal/lib/logger/prettyslog"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/storage/mongo"
+	"backend/internal/token"
 	"context"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
@@ -42,8 +42,8 @@ func main() {
 		}
 	}()
 
-	jwt := jsonwebtoken.New(log, storage, cfg.HTTPServer.JWTSigningKey)
-	h := handler.New(log, storage, hasher, jwt)
+	tokenService := token.New(log, storage, cfg.JwtSigningKey)
+	h := handler.New(log, storage, hasher, tokenService)
 
 	server := &http.Server{
 		Addr:         cfg.HTTPServer.Address,

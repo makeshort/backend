@@ -1,7 +1,6 @@
 package mongo
 
 import (
-	"backend/internal/http-server/constraints"
 	"backend/internal/storage"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
@@ -180,33 +179,6 @@ func (m *Mongo) DeleteUser(ctx context.Context, userID primitive.ObjectID) error
 		return storage.ErrUserNotFound
 	}
 	return err
-}
-
-// CreateSession creates a storage.Session document in database.
-func (m *Mongo) CreateSession(ctx context.Context, userID primitive.ObjectID) (primitive.ObjectID, error) {
-	datetime := getPrimitiveDatetimeNow()
-	doc, err := m.sessions.InsertOne(ctx, storage.Session{
-		UserID:    userID,
-		CreatedAt: datetime,
-		ExpiredAt: primitive.NewDateTimeFromTime(time.Now().Add(constraints.SessionTTL)),
-	})
-	return doc.InsertedID.(primitive.ObjectID), err
-}
-
-// DeleteSession deletes a session.
-func (m *Mongo) DeleteSession(ctx context.Context, sessionID primitive.ObjectID) error {
-	_, err := m.sessions.DeleteOne(ctx, bson.D{{"_id", sessionID}})
-	return err
-}
-
-// IsSessionActive check is session active or not.
-func (m *Mongo) IsSessionActive(ctx context.Context, sessionID primitive.ObjectID) (isSessionActive bool, ownerID primitive.ObjectID) {
-	doc := m.sessions.FindOne(ctx, bson.D{{"_id", sessionID}})
-	var session storage.Session
-	if err := doc.Decode(&session); err != nil {
-		return false, primitive.ObjectID{}
-	}
-	return session.ExpiredAt.Time().Unix() > time.Now().Unix(), session.UserID
 }
 
 func getPrimitiveDatetimeNow() primitive.DateTime {
