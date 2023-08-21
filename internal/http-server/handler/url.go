@@ -19,10 +19,10 @@ type CreateURLRequestBody struct {
 	Alias string `json:"alias,omitempty"`
 }
 
-// CreateURL     Creates a URL in database. Assigned to UserID.
-// @Summary      Create
+// CreateURL     Creates a URL in database. Assigned to user
+// @Summary      Create URL
+// @Description  Creates a URL in database. Assigned to user
 // @Security     SessionIDAuth
-// @Description  create an url in database
 // @Tags         url
 // @Accept       json
 // @Produce      json
@@ -49,8 +49,9 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		return
 	}
 
+	var alias string
 	if body.Alias == "" {
-		body.Alias = al.Generate(AliasLength)
+		alias = al.Generate(AliasLength)
 	}
 
 	id := ctx.GetString(ContextUserID)
@@ -61,9 +62,9 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		return
 	}
 
-	_, err = h.storage.CreateURL(ctx, parsedUrl, body.Alias, userID)
+	_, err = h.storage.CreateURL(ctx, parsedUrl, alias, userID)
 	if errors.Is(err, storage.ErrAliasAlreadyExists) {
-		h.log.Info("alias already exists", slog.String("alias", body.Alias))
+		h.log.Info("alias already exists", slog.String("alias", alias))
 		response.SendError(ctx, http.StatusConflict, "alias already exists")
 		return
 	}
@@ -76,19 +77,19 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, response.URLCreated{
 		Url:   body.Url,
-		Alias: body.Alias,
+		Alias: alias,
 	})
-	h.log.Info("url saved", slog.String("alias", body.Alias), slog.String("url", parsedUrl))
+	h.log.Info("url saved", slog.String("alias", alias), slog.String("url", parsedUrl))
 }
 
-// DeleteURL     Deletes a URL.
-// @Summary      Delete
+// DeleteURL     Deletes a URL
+// @Summary      Delete URL
+// @Description  Deletes an url from database
 // @Security     SessionIDAuth
-// @Description  delete an url from database
 // @Tags         url
 // @Produce      json
-// @Success      201  {object}      response.Success
-// @Failure      400  {object}      response.Error
+// @Success      200  {integer}     integer 1
+// @Failure      401  {object}      response.Error
 // @Failure      403  {object}      response.Error
 // @Failure      404  {object}      response.Error
 // @Failure      500  {object}      response.Error
@@ -132,18 +133,10 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.Success{Message: "url deleted"})
+	ctx.Status(http.StatusOK)
 	h.log.Info("url deleted", slog.String("alias", alias))
 }
 
-// Redirect      Redirects user from alias to it's url.
-// @Summary      Redirect
-// @Description  redirect from alias to it's url
-// @Tags         url
-// @Produce      json
-// @Success      308  {integer}   integer 1
-// @Failure      404  {object}    response.Error
-// @Router       /:alias          [get]
 func (h *Handler) Redirect(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 

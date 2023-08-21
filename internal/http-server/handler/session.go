@@ -55,8 +55,8 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 // Logout        Close a session
 // @Summary      User logout
-// @Security     SessionIDAuth
 // @Description  Close a session
+// @Security     SessionIDAuth
 // @Tags         session
 // @Produce      json
 // @Success      200  {integer}   integer 1

@@ -79,8 +79,9 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 | Code | Description                              |
 |:-----|:-----------------------------------------|
-| 403  | Forbidden. You are not owner of this URL |
 | 401  | Unauthorized                             |
+| 403  | Forbidden. You are not owner of this URL |
+| 404  | URL to delete not found                  |
 
 ---
 
