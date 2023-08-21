@@ -2,7 +2,7 @@
 
 ### Authorization:
 
-Authorization is performed by the `AccessToken` in `Authorization` header. Access token issues for 30 minutes, and refreshs by `RefreshToken` in cookies. RefreshToken issues for 30 days.
+Authorization is performed by the `AccessToken` in `Authorization` header. Access token issues for 30 minutes, and refreshs by `RefreshToken` in cookies. RefreshToken issues for 30 days. On logout refresh token adds to blacklist, and access token will never updated with this refresh token.
 
 ---
 
