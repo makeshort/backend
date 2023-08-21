@@ -11,10 +11,10 @@ import (
 )
 
 type Storage struct {
-	Client   *mongo.Client
-	urls     *mongo.Collection
-	users    *mongo.Collection
-	sessions *mongo.Collection
+	Client         *mongo.Client
+	urls           *mongo.Collection
+	users          *mongo.Collection
+	tokenBlacklist *mongo.Collection
 }
 
 // New returns a new Storage instance.
@@ -37,7 +37,7 @@ func New(mongoURI string, env string) *Storage {
 	db := client.Database(dbName)
 	urls := db.Collection("urls")
 	_, err = urls.Indexes().CreateOne(
-		context.Background(),
+		ctx,
 		mongo.IndexModel{
 			Keys:    bson.D{{Key: "alias", Value: 1}},
 			Options: options.Index().SetUnique(true),
@@ -49,7 +49,7 @@ func New(mongoURI string, env string) *Storage {
 
 	users := db.Collection("users")
 	_, err = users.Indexes().CreateOne(
-		context.Background(),
+		ctx,
 		mongo.IndexModel{
 			Keys:    bson.D{{Key: "email", Value: 1}},
 			Options: options.Index().SetUnique(true),
@@ -59,9 +59,19 @@ func New(mongoURI string, env string) *Storage {
 		panic(err)
 	}
 
-	sessions := db.Collection("sessions")
+	tokenBlacklist := db.Collection("token_blacklist")
+	_, err = tokenBlacklist.Indexes().CreateOne(
+		ctx,
+		mongo.IndexModel{
+			Keys:    bson.D{{"expire_at", 1}},
+			Options: options.Index().SetExpireAfterSeconds(0),
+		},
+	)
+	if err != nil {
+		panic(err)
+	}
 
-	return &Storage{Client: client, urls: urls, users: users, sessions: sessions}
+	return &Storage{Client: client, urls: urls, users: users, tokenBlacklist: tokenBlacklist}
 }
 
 // CreateURL creates a URL document in database.
@@ -179,6 +189,19 @@ func (s *Storage) DeleteUser(ctx context.Context, userID primitive.ObjectID) err
 		return storage.ErrUserNotFound
 	}
 	return err
+}
+
+func (s *Storage) BlacklistToken(ctx context.Context, refreshToken string, expireAt primitive.DateTime) (primitive.ObjectID, error) {
+	doc, err := s.tokenBlacklist.InsertOne(ctx, storage.BlacklistedToken{
+		RefreshToken: refreshToken,
+		CreatedAt:    getPrimitiveDatetimeNow(),
+		ExpireAt:     expireAt,
+	})
+	if err != nil {
+		return primitive.ObjectID{}, nil
+	}
+
+	return doc.InsertedID.(primitive.ObjectID), err
 }
 
 func getPrimitiveDatetimeNow() primitive.DateTime {

@@ -6,6 +6,7 @@ import (
 	"backend/internal/lib/logger/sl"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"time"
 )
@@ -64,10 +65,22 @@ func (h *Handler) Login(ctx *gin.Context) {
 // @Failure      500  {object}    response.Error
 // @Router       /session         [delete]
 func (h *Handler) Logout(ctx *gin.Context) {
+	refreshToken, err := ctx.Cookie("refresh_token")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.Error{Message: "refresh token is invalid"})
+	}
 	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 	ctx.Header(HeaderAuthorization, "")
 
-	// TODO: Add refresh / access token to blacklist
+	claims, err := h.tokenService.ParseRefreshToken(refreshToken)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response.Error{Message: "refresh token is invalid"})
+	}
+
+	_, err = h.storage.BlacklistToken(ctx, refreshToken, primitive.NewDateTimeFromTime(time.Unix(claims.ExpiresAt, 0)))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.Error{Message: "can't blacklist refresh token"})
+	}
 
 	ctx.Status(http.StatusOK)
 }

@@ -25,11 +25,11 @@ type User struct {
 	UpdatedAt    primitive.DateTime `bson:"updated_at"`
 }
 
-type Session struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	UserID    primitive.ObjectID `bson:"user_id"`
-	CreatedAt primitive.DateTime `bson:"created_at"`
-	ExpiredAt primitive.DateTime `bson:"expired_at"`
+type BlacklistedToken struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty"`
+	RefreshToken string             `bson:"refresh_token"`
+	CreatedAt    primitive.DateTime `bson:"created_at"`
+	ExpireAt     primitive.DateTime `bson:"expire_at"`
 }
 
 type Storage interface {
@@ -41,6 +41,7 @@ type Storage interface {
 	GetUser(ctx context.Context, email string, passwordHash string) (User, error)
 	GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]URL, error)
 	DeleteUser(ctx context.Context, userID primitive.ObjectID) error
+	BlacklistToken(ctx context.Context, refreshToken string, expireAt primitive.DateTime) (primitive.ObjectID, error)
 }
 
 var (
