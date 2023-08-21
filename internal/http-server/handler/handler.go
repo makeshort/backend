@@ -42,8 +42,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api")
 	{
-		api.POST("/session", h.CreateSession)
-		api.DELETE("/session", h.CloseSession)
+		api.POST("/session", h.Login)
+		api.DELETE("/session", h.Logout)
 		api.POST("/url", h.CheckAuth, h.CreateURL)
 		// api.PATCH("/url/:alias", h.CheckAuth, h.UpdateURL)
 		api.DELETE("/url/:alias", h.CheckAuth, h.DeleteURL)

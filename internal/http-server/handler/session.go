@@ -10,18 +10,18 @@ import (
 	"time"
 )
 
-// CreateSession  Creates a session
-// @Summary       Create
-// @Description   create a session
+// Login          Creates a session
+// @Summary       User login
+// @Description   Creates a session
 // @Tags          session
 // @Accept        json
 // @Produce       json
 // @Param         input body       request.UserLogIn true "Account credentials"
-// @Success       200  {object}    response.Token
+// @Success       200  {object}    response.TokenPair
 // @Failure       400  {object}    response.Error
 // @Failure       500  {object}    response.Error
 // @Router        /api/session     [post]
-func (h *Handler) CreateSession(ctx *gin.Context) {
+func (h *Handler) Login(ctx *gin.Context) {
 	var body request.UserLogIn
 
 	if err := ctx.BindJSON(&body); err != nil {
@@ -47,20 +47,23 @@ func (h *Handler) CreateSession(ctx *gin.Context) {
 	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(cookieMaxAge.Seconds()), "/", "localhost", false, true)
 	ctx.Header(HeaderAuthorization, fmt.Sprintf("Bearer %s", tokenPair.AccessToken))
 
-	ctx.Status(http.StatusOK)
+	ctx.JSON(http.StatusOK, response.TokenPair{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+	})
 }
 
-// CloseSession  Close a session
-// @Summary      Close
+// Logout        Close a session
+// @Summary      User logout
 // @Security     SessionIDAuth
-// @Description  close a session
+// @Description  Close a session
 // @Tags         session
 // @Produce      json
-// @Success      200  {object}    response.Success
+// @Success      200  {integer}   integer 1
 // @Failure      401  {object}    response.Error
 // @Failure      500  {object}    response.Error
 // @Router       /api/session     [delete]
-func (h *Handler) CloseSession(ctx *gin.Context) {
+func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
 	ctx.Header(HeaderAuthorization, "")
 

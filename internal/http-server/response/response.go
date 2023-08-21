@@ -37,6 +37,11 @@ type Session struct {
 	SessionID string `bson:"session_id"`
 }
 
+type TokenPair struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 // InvalidRequestBody sends an error response with 400 Bad Request status code.
 func InvalidRequestBody(ctx *gin.Context) {
 	SendError(ctx, http.StatusBadRequest, "invalid request body")
