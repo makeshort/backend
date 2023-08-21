@@ -2,11 +2,12 @@
 
 ### Authorization:
 
-Authorization is performed by the `SessionID` parameter in the request header
+Authorization is performed by the `AccessToken` in `Authorization` header. Access token issues for 30 minutes, and refreshs by `RefreshToken` in cookies. RefreshToken issues for 30 days.
+
+---
 
 ### Endpoints:
 
----
 
 ### Log in (create a session): **POST /api/session**
 
@@ -17,11 +18,12 @@ Authorization is performed by the `SessionID` parameter in the request header
 | email    | string | Yes      |
 | password | string | Yes      |
 
-**Success response:** `201 Created`
+**Success response:** `200 OK`
 
-| Field      | Type   |
-|:-----------|:-------|
-| session_id | string |
+| Field         | Type   |
+|:--------------|:-------|
+| access_token  | string |
+| refresh_token | string |
 
 **Possible errors:**
 
