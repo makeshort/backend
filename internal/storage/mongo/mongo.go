@@ -11,10 +11,10 @@ import (
 )
 
 type Storage struct {
-	Client         *mongo.Client
-	urls           *mongo.Collection
-	users          *mongo.Collection
-	tokenBlacklist *mongo.Collection
+	Client          *mongo.Client
+	urls            *mongo.Collection
+	users           *mongo.Collection
+	refreshSessions *mongo.Collection
 }
 
 // New returns a new Storage instance.
@@ -59,11 +59,11 @@ func New(mongoURI string, env string) *Storage {
 		panic(err)
 	}
 
-	tokenBlacklist := db.Collection("token_blacklist")
-	_, err = tokenBlacklist.Indexes().CreateOne(
+	refreshSessions := db.Collection("refresh_sessions")
+	_, err = refreshSessions.Indexes().CreateOne(
 		ctx,
 		mongo.IndexModel{
-			Keys:    bson.D{{"expire_at", 1}},
+			Keys:    bson.D{{"expires_at", 1}},
 			Options: options.Index().SetExpireAfterSeconds(0),
 		},
 	)
@@ -71,18 +71,17 @@ func New(mongoURI string, env string) *Storage {
 		panic(err)
 	}
 
-	return &Storage{Client: client, urls: urls, users: users, tokenBlacklist: tokenBlacklist}
+	return &Storage{Client: client, urls: urls, users: users, refreshSessions: refreshSessions}
 }
 
 // CreateURL creates a URL document in database.
 func (s *Storage) CreateURL(ctx context.Context, link string, alias string, userID primitive.ObjectID) (primitive.ObjectID, error) {
-	datetime := getPrimitiveDatetimeNow()
 	doc, err := s.urls.InsertOne(ctx, storage.URL{
 		Link:      link,
 		Alias:     alias,
 		UserID:    userID,
-		CreatedAt: datetime,
-		UpdatedAt: datetime,
+		CreatedAt: primitive.NewDateTimeFromTime(time.Now()),
+		UpdatedAt: primitive.NewDateTimeFromTime(time.Now()),
 	})
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
@@ -108,11 +107,10 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (storage.URL, error)
 
 // IncrementUrlCounter increments redirects field of storage.URL document in database.
 func (s *Storage) IncrementUrlCounter(ctx context.Context, alias string) error {
-	datetime := getPrimitiveDatetimeNow()
 	_, err := s.urls.UpdateOne(ctx,
 		bson.D{{"alias", alias}},
 		bson.D{{"$inc", bson.D{{"redirects", 1}}},
-			{"$set", bson.D{{"updated_at", datetime}}}})
+			{"$set", bson.D{{"updated_at", primitive.NewDateTimeFromTime(time.Now())}}}})
 	if err != nil {
 		return err
 	}
@@ -130,13 +128,12 @@ func (s *Storage) DeleteURL(ctx context.Context, alias string) error {
 
 // CreateUser creates a storage.User document in database.
 func (s *Storage) CreateUser(ctx context.Context, email string, username string, passwordHash string) (primitive.ObjectID, error) {
-	datetime := getPrimitiveDatetimeNow()
 	doc, err := s.users.InsertOne(ctx, storage.User{
 		Email:        email,
 		Username:     username,
 		PasswordHash: passwordHash,
-		CreatedAt:    datetime,
-		UpdatedAt:    datetime,
+		CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+		UpdatedAt:    primitive.NewDateTimeFromTime(time.Now()),
 	})
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
@@ -158,7 +155,7 @@ func (s *Storage) GetUser(ctx context.Context, email string, passwordHash string
 
 	if err := doc.Decode(&user); err != nil {
 		return storage.User{}, storage.ErrUserNotFound
-	}
+	} // TODO: ErrNoDocuments check
 	return user, nil
 }
 
@@ -191,11 +188,13 @@ func (s *Storage) DeleteUser(ctx context.Context, userID primitive.ObjectID) err
 	return err
 }
 
-func (s *Storage) BlacklistToken(ctx context.Context, refreshToken string, expireAt primitive.DateTime) (primitive.ObjectID, error) {
-	doc, err := s.tokenBlacklist.InsertOne(ctx, storage.BlacklistedToken{
+// CreateRefreshSession creates a new refresh session with refresh token assigned to user.
+func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration) (primitive.ObjectID, error) {
+	doc, err := s.refreshSessions.InsertOne(ctx, storage.RefreshSession{
+		UserID:       userID,
 		RefreshToken: refreshToken,
-		CreatedAt:    getPrimitiveDatetimeNow(),
-		ExpireAt:     expireAt,
+		CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
+		ExpiresAt:    primitive.NewDateTimeFromTime(time.Now().Add(timeToLive)),
 	})
 	if err != nil {
 		return primitive.ObjectID{}, nil
@@ -204,6 +203,22 @@ func (s *Storage) BlacklistToken(ctx context.Context, refreshToken string, expir
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
-func getPrimitiveDatetimeNow() primitive.DateTime {
-	return primitive.NewDateTimeFromTime(time.Now())
+func (s *Storage) DeleteRefreshSession(ctx context.Context, refreshToken string) error {
+	res, err := s.refreshSessions.DeleteOne(ctx, bson.D{{"refresh_token", refreshToken}})
+	if err != nil {
+		return err
+	}
+	if res.DeletedCount == 0 {
+		return storage.NothingToDelete
+	}
+	return nil
+}
+
+func (s *Storage) IsRefreshTokenValid(ctx context.Context, refreshToken string) (isRefreshTokenValid bool, ownerID primitive.ObjectID) {
+	var session storage.RefreshSession
+	doc := s.refreshSessions.FindOne(ctx, bson.D{{"refresh_token", refreshToken}})
+	if err := doc.Decode(&session); err != nil {
+		return false, primitive.ObjectID{}
+	}
+	return true, session.UserID
 }

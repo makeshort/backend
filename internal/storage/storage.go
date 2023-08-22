@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
 )
 
 type URL struct {
@@ -25,11 +26,12 @@ type User struct {
 	UpdatedAt    primitive.DateTime `bson:"updated_at"`
 }
 
-type BlacklistedToken struct {
+type RefreshSession struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
+	UserID       primitive.ObjectID `bson:"user_id"`
 	RefreshToken string             `bson:"refresh_token"`
 	CreatedAt    primitive.DateTime `bson:"created_at"`
-	ExpireAt     primitive.DateTime `bson:"expire_at"`
+	ExpiresAt    primitive.DateTime `bson:"expires_at"`
 }
 
 type Storage interface {
@@ -41,7 +43,9 @@ type Storage interface {
 	GetUser(ctx context.Context, email string, passwordHash string) (User, error)
 	GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]URL, error)
 	DeleteUser(ctx context.Context, userID primitive.ObjectID) error
-	BlacklistToken(ctx context.Context, refreshToken string, expireAt primitive.DateTime) (primitive.ObjectID, error)
+	CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration) (primitive.ObjectID, error)
+	DeleteRefreshSession(ctx context.Context, refreshToken string) error
+	IsRefreshTokenValid(ctx context.Context, refreshToken string) (isRefreshTokenValid bool, ownerID primitive.ObjectID)
 }
 
 var (
@@ -49,4 +53,5 @@ var (
 	ErrAliasAlreadyExists = errors.New("alias already exists")
 	ErrUserNotFound       = errors.New("user not found")
 	ErrUserAlreadyExists  = errors.New("user already exists")
+	NothingToDelete       = errors.New("no documents to delete")
 )

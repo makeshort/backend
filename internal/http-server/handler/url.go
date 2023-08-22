@@ -87,13 +87,14 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 // @Description  Deletes an url from database
 // @Security     AccessToken
 // @Tags         url
+// @Param        alias path string true "alias"
 // @Produce      json
 // @Success      200  {integer}     integer 1
 // @Failure      401  {object}      response.Error
 // @Failure      403  {object}      response.Error
 // @Failure      404  {object}      response.Error
 // @Failure      500  {object}      response.Error
-// @Router       /url/:alias        [delete]
+// @Router       /url/{alias}       [delete]
 func (h *Handler) DeleteURL(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 

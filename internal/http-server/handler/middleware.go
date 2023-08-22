@@ -2,7 +2,6 @@ package handler
 
 import (
 	"backend/internal/http-server/response"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"net/http"
@@ -28,30 +27,13 @@ func (h *Handler) CheckAuth(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := h.tokenService.ParseAccessToken(headerParts[1])
+	claims, err := h.tokenService.ParseJWT(headerParts[1])
 	if err != nil {
 		response.SendError(ctx, http.StatusUnauthorized, "token is invalid")
 		return
 	}
 
 	ctx.Set(ContextUserID, claims.UserID)
-
-	cookieRefreshToken, _ := ctx.Cookie("refresh_token")
-	if cookieRefreshToken != "" {
-		claims, err = h.tokenService.ParseRefreshToken(cookieRefreshToken)
-		if err == nil {
-			tokenPair, err := h.tokenService.GenerateTokenPair(claims.UserID)
-			if err != nil {
-				response.SendError(ctx, http.StatusInternalServerError, "can't refresh tokens")
-				return
-			}
-
-			cookieMaxAge := 30 * 24 * time.Hour
-
-			ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(cookieMaxAge.Seconds()), "/", "localhost", false, true)
-			ctx.Header(HeaderAuthorization, fmt.Sprintf("Bearer %s", tokenPair.AccessToken))
-		}
-	}
 }
 
 func (h *Handler) LogRequest(ctx *gin.Context) {

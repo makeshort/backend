@@ -4,15 +4,14 @@ import (
 	"backend/internal/storage"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"golang.org/x/exp/slog"
 	"time"
 )
 
 const (
-	accessTokenTTL   = 30 * time.Minute
-	refreshTokenTTL  = 30 * 24 * time.Hour
-	accessTokenType  = "access"
-	refreshTokenType = "refresh"
+	AccessTokenTTL  = 30 * time.Minute
+	RefreshTokenTTL = 30 * 24 * time.Hour
 )
 
 type Service struct {
@@ -25,7 +24,6 @@ type Service struct {
 type Claims struct {
 	jwt.StandardClaims
 	UserID string `json:"id"`
-	Type   string `json:"type"`
 }
 
 type Pair struct {
@@ -43,25 +41,18 @@ func New(log *slog.Logger, st storage.Storage, accessSecret string, refreshSecre
 }
 
 func (s *Service) GenerateTokenPair(userID string) (*Pair, error) {
-	accessToken, err := s.generateJWT(userID, accessTokenType, accessTokenTTL, s.accessSecret)
+	accessToken, err := s.generateJWT(userID, AccessTokenTTL, s.accessSecret)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := s.generateJWT(userID, refreshTokenType, refreshTokenTTL, s.refreshSecret)
-	if err != nil {
-		return nil, err
-	}
+	refreshToken := s.generateRefreshToken()
 
 	return &Pair{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
-func (s *Service) ParseAccessToken(rawToken string) (*Claims, error) {
+func (s *Service) ParseJWT(rawToken string) (*Claims, error) {
 	return s.parseToken(rawToken, s.accessSecret)
-}
-
-func (s *Service) ParseRefreshToken(rawToken string) (*Claims, error) {
-	return s.parseToken(rawToken, s.refreshSecret)
 }
 
 func (s *Service) parseToken(rawToken string, signingKey []byte) (*Claims, error) {
@@ -84,14 +75,17 @@ func (s *Service) parseToken(rawToken string, signingKey []byte) (*Claims, error
 	return claims, nil
 }
 
-func (s *Service) generateJWT(userID string, tokenType string, timeToLive time.Duration, signingKey []byte) (string, error) {
+func (s *Service) generateJWT(userID string, timeToLive time.Duration, signingKey []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(timeToLive).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		userID,
-		tokenType,
 	})
 	return token.SignedString(signingKey)
+}
+
+func (s *Service) generateRefreshToken() string {
+	return uuid.NewString()
 }
