@@ -79,7 +79,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UserLogIn"
+                            "$ref": "#/definitions/request.UserLogin"
                         }
                     }
                 ],
@@ -110,7 +110,7 @@ const docTemplate = `{
                         "AccessToken": []
                     }
                 ],
-                "description": "Remove a cookie and delete session from database",
+                "description": "Delete session from database",
                 "produces": [
                     "application/json"
                 ],
@@ -225,7 +225,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.URLCreated"
+                            "$ref": "#/definitions/response.UrlCreated"
                         }
                     },
                     "400": {
@@ -425,7 +425,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UserLogIn": {
+        "request.UserLogin": {
             "type": "object",
             "properties": {
                 "email": {
@@ -469,7 +469,7 @@ const docTemplate = `{
                 }
             }
         },
-        "response.URLCreated": {
+        "response.UrlCreated": {
             "type": "object",
             "properties": {
                 "alias": {
@@ -503,7 +503,7 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "0.1",
 	Host:             "localhost:8081/api",
 	BasePath:         "/",
 	Schemes:          []string{},

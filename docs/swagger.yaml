@@ -21,7 +21,7 @@ definitions:
       username:
         type: string
     type: object
-  request.UserLogIn:
+  request.UserLogin:
     properties:
       email:
         type: string
@@ -49,7 +49,7 @@ definitions:
       url:
         type: string
     type: object
-  response.URLCreated:
+  response.UrlCreated:
     properties:
       alias:
         type: string
@@ -68,7 +68,7 @@ info:
   contact: {}
   description: API Server for URL Shortener Application
   title: URL Shortener App API
-  version: "1.0"
+  version: "0.1"
 paths:
   /auth/refresh:
     post:
@@ -100,7 +100,7 @@ paths:
       - auth
   /auth/session:
     delete:
-      description: Remove a cookie and delete session from database
+      description: Delete session from database
       produces:
       - application/json
       responses:
@@ -131,7 +131,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/request.UserLogIn'
+          $ref: '#/definitions/request.UserLogin'
       produces:
       - application/json
       responses:
@@ -202,7 +202,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/response.URLCreated'
+            $ref: '#/definitions/response.UrlCreated'
         "400":
           description: Bad Request
           schema:

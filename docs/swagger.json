@@ -4,7 +4,7 @@
         "description": "API Server for URL Shortener Application",
         "title": "URL Shortener App API",
         "contact": {},
-        "version": "1.0"
+        "version": "0.1"
     },
     "host": "localhost:8081/api",
     "basePath": "/",
@@ -72,7 +72,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UserLogIn"
+                            "$ref": "#/definitions/request.UserLogin"
                         }
                     }
                 ],
@@ -103,7 +103,7 @@
                         "AccessToken": []
                     }
                 ],
-                "description": "Remove a cookie and delete session from database",
+                "description": "Delete session from database",
                 "produces": [
                     "application/json"
                 ],
@@ -218,7 +218,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.URLCreated"
+                            "$ref": "#/definitions/response.UrlCreated"
                         }
                     },
                     "400": {
@@ -418,7 +418,7 @@
                 }
             }
         },
-        "request.UserLogIn": {
+        "request.UserLogin": {
             "type": "object",
             "properties": {
                 "email": {
@@ -462,7 +462,7 @@
                 }
             }
         },
-        "response.URLCreated": {
+        "response.UrlCreated": {
             "type": "object",
             "properties": {
                 "alias": {

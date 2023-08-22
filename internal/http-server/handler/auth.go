@@ -105,9 +105,9 @@ func (h *Handler) Login(ctx *gin.Context) {
 	})
 }
 
-// Logout        Remove a cookie and delete session from database
+// Logout        Delete session from database
 // @Summary      User logout
-// @Description  Remove a cookie and delete session from database
+// @Description  Delete session from database
 // @Security     AccessToken
 // @Tags         auth
 // @Produce      json
