@@ -9,7 +9,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 ### Endpoints:
 
 
-### **POST /api/session** - login (create a session)
+### **POST /api/auth/session** - login (create a session)
 
 **Body:**
 
@@ -33,9 +33,88 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-### **DELETE /api/session** - logout (close a session): 
+### **DELETE /api/auth/session** - logout (close a session): 
 
 **Success response:** `200 OK`
+
+**Possible errors:**
+
+| Code | Description  |
+|:-----|:-------------|
+| 401  | Unauthorized |
+
+---
+
+### **POST /api/auth/signup** - registration (create user)
+
+**Body:**
+
+| Field    | Type   | Required |
+|:---------|:-------|:---------|
+| email    | string | Yes      |
+| username | string | Yes      |
+| password | string | Yes      | 
+
+**Success response:** `201 Created`
+
+| Field    | Type   |
+|:---------|:-------|
+| email    | string |
+| username | string |
+
+
+**Possible errors:**
+
+| Code | Description                                     |
+|:-----|:------------------------------------------------|
+| 400  | Bad request. Missing required fields            |
+| 409  | User with this email or username already exists |
+
+---
+
+### **POST /api/auth/refresh** - refresh tokens
+
+**Body:**
+
+| Field    | Type   | Required |
+|:---------|:-------|:---------|
+| token    | string | Yes      |
+
+**Success response:** `200 OK`
+
+| Field         | Type   |
+|:--------------|:-------|
+| access_token  | string |
+| refresh_token | string |
+
+
+**Possible errors:**
+
+| Code | Description           |
+|:-----|:----------------------|
+| 403  | Invalid refresh token |
+
+### **DELETE /api/user/me** - delete me
+
+**Success response:** `200 OK`
+
+**Possible errors:**
+
+| Code | Description                             |
+|:-----|:----------------------------------------|
+| 400  | Bad request. User not found in database |
+| 401  | Unauthorized                            |
+
+### **GET /api/user/me/urls** - get my URLs
+
+**Success response:** `200 OK`
+
+Array of URL entities:
+
+| Field | Type   |
+|:------|:-------|
+| url   | string |
+| alias | string |
 
 **Possible errors:**
 
@@ -82,58 +161,3 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | 401  | Unauthorized                             |
 | 403  | Forbidden. You are not owner of this URL |
 | 404  | URL to delete not found                  |
-
----
-
-### **POST /api/user** - registration (create user)
-
-**Body:**
-
-| Field    | Type   | Required |
-|:---------|:-------|:---------|
-| email    | string | Yes      |
-| username | string | Yes      |
-| password | string | Yes      | 
-
-**Success response:** `201 Created`
-
-| Field    | Type   |
-|:---------|:-------|
-| email    | string |
-| username | string |
-
-
-**Possible errors:**
-
-| Code | Description                                     |
-|:-----|:------------------------------------------------|
-| 400  | Bad request. Missing required fields            |
-| 409  | User with this email or username already exists |
-
-### **DELETE /api/user/me** - delete me
-
-**Success response:** `200 OK`
-
-**Possible errors:**
-
-| Code | Description                             |
-|:-----|:----------------------------------------|
-| 400  | Bad request. User not found in database |
-| 401  | Unauthorized                            |
-
-### **GET /api/user/me/urls** - get my URLs
-
-**Success response:** `200 OK`
-
-Array of URL entities:
-
-| Field | Type   |
-|:------|:-------|
-| url   | string |
-| alias | string |
-
-**Possible errors:**
-
-| Code | Description  |
-|:-----|:-------------|
-| 401  | Unauthorized |

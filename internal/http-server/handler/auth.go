@@ -23,7 +23,7 @@ import (
 // @Failure      400  {object}      response.Error
 // @Failure      409  {object}      response.Error
 // @Failure      500  {object}      response.Error
-// @Router       /auth/register     [post]
+// @Router       /auth/signup       [post]
 func (h *Handler) Register(ctx *gin.Context) {
 	var body request.UserCreate
 
@@ -141,8 +141,8 @@ func (h *Handler) Logout(ctx *gin.Context) {
 // @Tags         auth
 // @Param        input body       request.RefreshToken true "Refresh token"
 // @Produce      json
-// @Success      201  {object}    response.TokenPair
-// @Failure      401  {object}    response.Error
+// @Success      200  {object}    response.TokenPair
+// @Failure      403  {object}    response.Error
 // @Failure      500  {object}    response.Error
 // @Router       /auth/refresh    [post]
 func (h *Handler) Refresh(ctx *gin.Context) {
