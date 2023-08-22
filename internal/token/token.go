@@ -1,6 +1,7 @@
 package token
 
 import (
+	"backend/internal/config"
 	"backend/internal/storage"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
@@ -9,14 +10,10 @@ import (
 	"time"
 )
 
-const (
-	AccessTokenTTL  = 30 * time.Minute
-	RefreshTokenTTL = 30 * 24 * time.Hour
-)
-
 type Service struct {
 	log           *slog.Logger
 	storage       storage.Storage
+	config        *config.Config
 	accessSecret  []byte
 	refreshSecret []byte
 }
@@ -31,16 +28,17 @@ type Pair struct {
 	RefreshToken string
 }
 
-func New(log *slog.Logger, st storage.Storage, accessSecret string) *Service {
+func New(log *slog.Logger, st storage.Storage, config *config.Config) *Service {
 	return &Service{
 		log:          log,
 		storage:      st,
-		accessSecret: []byte(accessSecret),
+		config:       config,
+		accessSecret: []byte(config.Token.Access.Secret),
 	}
 }
 
 func (s *Service) GenerateTokenPair(userID string) (*Pair, error) {
-	accessToken, err := s.generateJWT(userID, AccessTokenTTL, s.accessSecret)
+	accessToken, err := s.generateJWT(userID, s.config.Token.Access.TTL, s.accessSecret)
 	if err != nil {
 		return nil, err
 	}

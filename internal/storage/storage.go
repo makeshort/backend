@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 )
 
 type URL struct {
@@ -45,7 +44,7 @@ type Storage interface {
 	GetUserByCredentials(ctx context.Context, email string, passwordHash string) (User, error)
 	GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]URL, error)
 	DeleteUser(ctx context.Context, userID primitive.ObjectID) error
-	CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration, ip string, userAgent string) (primitive.ObjectID, error)
+	CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, ip string, userAgent string) (primitive.ObjectID, error)
 	DeleteRefreshSession(ctx context.Context, refreshToken string) error
 	IsRefreshTokenValid(ctx context.Context, refreshToken string) (isRefreshTokenValid bool, ownerID primitive.ObjectID)
 }

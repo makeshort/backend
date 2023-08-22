@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"backend/internal/config"
 	"backend/internal/lib/hash"
 	"backend/internal/lib/logger/format"
 	"backend/internal/storage"
@@ -23,11 +24,12 @@ type Handler struct {
 	storage      storage.Storage
 	hasher       *hash.Hasher
 	tokenService *token.Service
+	config       *config.Config
 }
 
 // New returns a new instance of Handler
-func New(log *slog.Logger, storage storage.Storage, hasher *hash.Hasher, tokenService *token.Service) *Handler {
-	return &Handler{log: log, storage: storage, hasher: hasher, tokenService: tokenService}
+func New(log *slog.Logger, storage storage.Storage, hasher *hash.Hasher, tokenService *token.Service, config *config.Config) *Handler {
+	return &Handler{log: log, storage: storage, hasher: hasher, tokenService: tokenService, config: config}
 }
 
 // InitRoutes create a new routes list for Handler

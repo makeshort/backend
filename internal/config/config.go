@@ -15,11 +15,25 @@ const (
 )
 
 type Config struct {
-	Env          string `yaml:"env" env-required:"true"`
-	HashSalt     string `yaml:"hash_salt" env-required:"true"`
-	AccessSecret string `yaml:"access_secret" env-required:"true"`
-	Db           Db     `yaml:"db" env-required:"true"`
-	Server       Server `yaml:"http" env-required:"true"`
+	Env      string `yaml:"env" env-required:"true"`
+	HashSalt string `yaml:"hash_salt" env-required:"true"`
+	Token    Token  `yaml:"token" env-required:"true"`
+	Db       Db     `yaml:"db" env-required:"true"`
+	Server   Server `yaml:"http" env-required:"true"`
+}
+
+type Token struct {
+	Access  TokenAccess  `yaml:"access"`
+	Refresh TokenRefresh `yaml:"refresh"`
+}
+
+type TokenAccess struct {
+	Secret string        `yaml:"secret"`
+	TTL    time.Duration `yaml:"ttl"`
+}
+
+type TokenRefresh struct {
+	TTL time.Duration `yaml:"ttl"`
 }
 
 type Db struct {

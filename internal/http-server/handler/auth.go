@@ -5,7 +5,6 @@ import (
 	"backend/internal/http-server/response"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/storage"
-	"backend/internal/token"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
@@ -91,13 +90,13 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	_, err = h.storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, token.RefreshTokenTTL, ctx.ClientIP(), ctx.Request.UserAgent())
+	_, err = h.storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
 		return
 	}
 
-	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(token.RefreshTokenTTL.Seconds()), "/", "localhost", false, true)
+	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), "/", "localhost", false, true)
 
 	ctx.JSON(http.StatusOK, response.TokenPair{
 		AccessToken:  tokenPair.AccessToken,
@@ -171,13 +170,13 @@ func (h *Handler) RefreshTokens(ctx *gin.Context) {
 		return
 	}
 
-	_, err = h.storage.CreateRefreshSession(ctx, userID, tokenPair.RefreshToken, token.RefreshTokenTTL, ctx.ClientIP(), ctx.Request.UserAgent())
+	_, err = h.storage.CreateRefreshSession(ctx, userID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
 		return
 	}
 
-	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(token.RefreshTokenTTL.Seconds()), "/", "localhost", false, true)
+	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), "/", "localhost", false, true)
 
 	ctx.JSON(http.StatusOK, response.TokenPair{
 		AccessToken:  tokenPair.AccessToken,

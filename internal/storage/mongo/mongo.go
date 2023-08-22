@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"backend/internal/config"
 	"backend/internal/storage"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,24 +13,25 @@ import (
 
 type Storage struct {
 	Client          *mongo.Client
+	config          *config.Config
 	urls            *mongo.Collection
 	users           *mongo.Collection
 	refreshSessions *mongo.Collection
 }
 
 // New returns a new Storage instance
-func New(mongoURI string, env string) *Storage {
+func New(config *config.Config) *Storage {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.Db.ConnectionURI))
 	if err != nil {
 		panic(err)
 	}
 
 	var dbName string
-	if env == "prod" {
-		dbName = env
+	if config.Env == "prod" {
+		dbName = config.Env
 	} else {
 		dbName = "dev"
 	}
@@ -71,7 +73,7 @@ func New(mongoURI string, env string) *Storage {
 		panic(err)
 	}
 
-	return &Storage{Client: client, urls: urls, users: users, refreshSessions: refreshSessions}
+	return &Storage{Client: client, config: config, urls: urls, users: users, refreshSessions: refreshSessions}
 }
 
 // CreateURL creates a URL document in database
@@ -189,14 +191,14 @@ func (s *Storage) DeleteUser(ctx context.Context, userID primitive.ObjectID) err
 }
 
 // CreateRefreshSession creates a new refresh session with refresh token assigned to user
-func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration, ip string, userAgent string) (primitive.ObjectID, error) {
+func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, ip string, userAgent string) (primitive.ObjectID, error) {
 	doc, err := s.refreshSessions.InsertOne(ctx, storage.RefreshSession{
 		UserID:       userID,
 		RefreshToken: refreshToken,
 		IP:           ip,
 		UserAgent:    userAgent,
 		CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
-		ExpiresAt:    primitive.NewDateTimeFromTime(time.Now().Add(timeToLive)),
+		ExpiresAt:    primitive.NewDateTimeFromTime(time.Now().Add(s.config.Token.Refresh.TTL)),
 	})
 	if err != nil {
 		return primitive.ObjectID{}, nil

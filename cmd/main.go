@@ -33,7 +33,7 @@ func main() {
 
 	log.Info("url shortener rest api server running", slog.String("env", cfg.Env))
 
-	storage := mongo.New(cfg.Db.ConnectionURI, cfg.Env)
+	storage := mongo.New(cfg)
 	log.Info("mongo client started")
 	defer func() {
 		err := storage.Client.Disconnect(context.Background())
@@ -42,8 +42,8 @@ func main() {
 		}
 	}()
 
-	tokenService := token.New(log, storage, cfg.AccessSecret)
-	h := handler.New(log, storage, hasher, tokenService)
+	tokenService := token.New(log, storage, cfg)
+	h := handler.New(log, storage, hasher, tokenService, cfg)
 
 	server := &http.Server{
 		Addr:         cfg.Server.Address,
