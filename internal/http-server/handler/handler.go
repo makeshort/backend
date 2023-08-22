@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"backend/internal/config"
 	"backend/internal/lib/hash"
-	"backend/internal/lib/jsonwebtoken"
 	"backend/internal/lib/logger/format"
 	"backend/internal/storage"
+	"backend/internal/token"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -12,22 +13,31 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+const (
+	HeaderAuthorization = "Authorization"
+	ContextUserID       = "UserID"
+	AliasLength         = 6
+)
+
 type Handler struct {
-	log     *slog.Logger
-	storage storage.Storage
-	hasher  *hash.Hasher
-	jwt     *jsonwebtoken.JWT
+	log          *slog.Logger
+	storage      storage.Storage
+	hasher       *hash.Hasher
+	tokenService *token.Service
+	config       *config.Config
 }
 
-func New(log *slog.Logger, storage storage.Storage, hasher *hash.Hasher, jwt *jsonwebtoken.JWT) *Handler {
-	return &Handler{log: log, storage: storage, hasher: hasher, jwt: jwt}
+// New returns a new instance of Handler
+func New(log *slog.Logger, storage storage.Storage, hasher *hash.Hasher, tokenService *token.Service, config *config.Config) *Handler {
+	return &Handler{log: log, storage: storage, hasher: hasher, tokenService: tokenService, config: config}
 }
 
+// InitRoutes create a new routes list for Handler
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
 	router.Use(gin.Recovery())
-	router.Use(h.LogRequest)
+	router.Use(h.RequestLog)
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -35,15 +45,27 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api")
 	{
-		api.POST("/session", h.CreateSession)
-		api.DELETE("/session", h.CloseSession)
-		api.POST("/url", h.CheckAuth, h.CreateURL)
-		// api.PATCH("/url/:alias", h.CheckAuth, h.UpdateURL)
-		api.DELETE("/url/:alias", h.CheckAuth, h.DeleteURL)
-		api.POST("/user", h.CreateUser)
-		// api.PATCH("/user/me", h.CheckAuth, h.UpdateMe)
-		api.DELETE("/user/me", h.CheckAuth, h.DeleteMe)
-		api.GET("/user/me/urls", h.CheckAuth, h.GetMyURLs)
+		auth := api.Group("/auth")
+		{
+			auth.POST("/session", h.Login)
+			auth.DELETE("/session", h.UserIdentity, h.Logout)
+			auth.POST("/signup", h.Register)
+			auth.POST("/refresh", h.RefreshTokens)
+		}
+
+		url := api.Group("/url", h.UserIdentity)
+		{
+			url.POST("/", h.CreateURL)
+			// url.PATCH("/:alias", h.UpdateURL)
+			url.DELETE("/:alias", h.DeleteURL)
+		}
+
+		user := api.Group("/user", h.UserIdentity)
+		{
+			// user.PATCH("/me", h.UpdateMe)
+			user.DELETE("/me", h.DeleteMe)
+			user.GET("/me/urls", h.GetMyURLs)
+		}
 	}
 
 	h.logRoutes(router.Routes())
@@ -51,6 +73,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	return router
 }
 
+// logRoutes logs all routes for Handler
 func (h *Handler) logRoutes(routes gin.RoutesInfo) {
 	for _, route := range routes {
 		method := format.CompleteStringToLength(route.Method, 10, ' ')

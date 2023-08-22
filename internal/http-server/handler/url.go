@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"backend/internal/http-server/constraints"
 	"backend/internal/http-server/request"
 	"backend/internal/http-server/response"
-	al "backend/internal/lib/alias"
 	"backend/internal/lib/logger/sl"
+	"backend/internal/lib/random"
 	"backend/internal/storage"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -15,25 +14,20 @@ import (
 	neturl "net/url"
 )
 
-type CreateURLRequestBody struct {
-	Url   string `json:"url"`
-	Alias string `json:"alias,omitempty"`
-}
-
-// CreateURL     Creates a URL in database. Assigned to UserID.
-// @Summary      Create
-// @Security     SessionIDAuth
-// @Description  create an url in database
+// CreateURL     Creates a URL in database, assigned to user
+// @Summary      Create URL
+// @Description  Creates a URL in database, assigned to user
+// @Security     AccessToken
 // @Tags         url
 // @Accept       json
 // @Produce      json
 // @Param        input body       request.URL true "Url data"
-// @Success      201  {object}    response.URLCreated
+// @Success      201  {object}    response.UrlCreated
 // @Failure      400  {object}    response.Error
 // @Failure      401  {object}    response.Error
 // @Failure      409  {object}    response.Error
 // @Failure      500  {object}    response.Error
-// @Router       /api/url         [post]
+// @Router       /url             [post]
 func (h *Handler) CreateURL(ctx *gin.Context) {
 	var body request.URL
 
@@ -50,21 +44,22 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		return
 	}
 
-	if body.Alias == "" {
-		body.Alias = al.Generate(constraints.AliasLength)
+	alias := body.Alias
+	if alias == "" {
+		alias = random.Generate(AliasLength)
 	}
 
-	id := ctx.GetString(constraints.ContextUserID)
+	id := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
+		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err), slog.String("id", id))
 		response.InvalidAuthToken(ctx)
 		return
 	}
 
-	_, err = h.storage.CreateURL(ctx, parsedUrl, body.Alias, userID)
+	_, err = h.storage.CreateURL(ctx, parsedUrl, alias, userID)
 	if errors.Is(err, storage.ErrAliasAlreadyExists) {
-		h.log.Info("alias already exists", slog.String("alias", body.Alias))
+		h.log.Info("alias already exists", slog.String("alias", alias))
 		response.SendError(ctx, http.StatusConflict, "alias already exists")
 		return
 	}
@@ -75,29 +70,30 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, response.URLCreated{
+	ctx.JSON(http.StatusCreated, response.UrlCreated{
 		Url:   body.Url,
-		Alias: body.Alias,
+		Alias: alias,
 	})
-	h.log.Info("url saved", slog.String("alias", body.Alias), slog.String("url", parsedUrl))
+	h.log.Info("url saved", slog.String("url", parsedUrl), slog.String("alias", alias))
 }
 
-// DeleteURL     Deletes a URL.
-// @Summary      Delete
-// @Security     SessionIDAuth
-// @Description  delete an url from database
+// DeleteURL     Deletes a URL
+// @Summary      Delete URL
+// @Description  Deletes an url from database
+// @Security     AccessToken
 // @Tags         url
+// @Param        alias path string true "alias"
 // @Produce      json
-// @Success      201  {object}      response.Success
-// @Failure      400  {object}      response.Error
+// @Success      200  {integer}     integer 1
+// @Failure      401  {object}      response.Error
 // @Failure      403  {object}      response.Error
 // @Failure      404  {object}      response.Error
 // @Failure      500  {object}      response.Error
-// @Router       /api/url/:alias    [delete]
+// @Router       /url/{alias}       [delete]
 func (h *Handler) DeleteURL(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
-	id := ctx.GetString(constraints.ContextUserID)
+	id := ctx.GetString(ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
@@ -105,7 +101,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 		return
 	}
 
-	url, err := h.storage.GetURL(ctx, alias)
+	url, err := h.storage.GetUrlByAlias(ctx, alias)
 	if err != nil {
 		if errors.Is(err, storage.ErrURLNotFound) {
 			h.log.Info("url doesn't exists", slog.String("alias", alias))
@@ -133,22 +129,14 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.Success{Message: "url deleted"})
+	ctx.Status(http.StatusOK)
 	h.log.Info("url deleted", slog.String("alias", alias))
 }
 
-// Redirect      Redirects user from alias to it's url.
-// @Summary      Redirect
-// @Description  redirect from alias to it's url
-// @Tags         url
-// @Produce      json
-// @Success      308  {integer}   integer 1
-// @Failure      404  {object}    response.Error
-// @Router       /:alias          [get]
 func (h *Handler) Redirect(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
-	url, err := h.storage.GetURL(ctx, alias)
+	url, err := h.storage.GetUrlByAlias(ctx, alias)
 	if err != nil {
 		if errors.Is(err, storage.ErrURLNotFound) {
 			h.log.Info("url not found", slog.String("alias", alias))
@@ -160,12 +148,12 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 	}
 
 	ctx.Redirect(http.StatusPermanentRedirect, url.Link)
-	err = h.storage.IncrementUrlCounter(ctx, alias)
+	err = h.storage.IncrementRedirectsCounter(ctx, alias)
 	if err != nil {
 		h.log.Error("error while incrementing requests counter", slog.String("alias", alias))
 	}
 
-	h.log.Info("redirected", slog.String("alias", alias), slog.String("url", url.Link))
+	h.log.Info("redirected", slog.String("url", url.Link), slog.String("alias", alias))
 }
 
 func validateUrl(rawUrl string) (string, bool) {

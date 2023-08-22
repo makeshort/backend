@@ -5,10 +5,10 @@ import (
 	"backend/internal/config"
 	"backend/internal/http-server/handler"
 	"backend/internal/lib/hash"
-	"backend/internal/lib/jsonwebtoken"
 	"backend/internal/lib/logger/prettyslog"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/storage/mongo"
+	"backend/internal/token"
 	"context"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
@@ -17,13 +17,13 @@ import (
 )
 
 // @title                        URL Shortener App API
-// @version                      1.0
+// @version                      0.1
 // @description                  API Server for URL Shortener Application
-// @host                         localhost:8081
+// @host                         localhost:8081/api
 // @BasePath                     /
-// @securityDefinitions.apikey   SessionIDAuth
+// @securityDefinitions.apikey   AccessToken
 // @in                           header
-// @name                         SessionID
+// @name                         Authorization
 func main() {
 	cfg := config.MustLoad()
 	log := initLogger(cfg.Env)
@@ -33,7 +33,7 @@ func main() {
 
 	log.Info("url shortener rest api server running", slog.String("env", cfg.Env))
 
-	storage := mongo.New(cfg.MongoURI, cfg.Env)
+	storage := mongo.New(cfg)
 	log.Info("mongo client started")
 	defer func() {
 		err := storage.Client.Disconnect(context.Background())
@@ -42,15 +42,15 @@ func main() {
 		}
 	}()
 
-	jwt := jsonwebtoken.New(log, storage, cfg.HTTPServer.JWTSigningKey)
-	h := handler.New(log, storage, hasher, jwt)
+	tokenService := token.New(log, storage, cfg)
+	h := handler.New(log, storage, hasher, tokenService, cfg)
 
 	server := &http.Server{
-		Addr:         cfg.HTTPServer.Address,
+		Addr:         cfg.Server.Address,
 		Handler:      h.InitRoutes(),
-		ReadTimeout:  cfg.HTTPServer.Timeout,
-		WriteTimeout: cfg.HTTPServer.Timeout,
-		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+		ReadTimeout:  cfg.Server.Timeout,
+		WriteTimeout: cfg.Server.Timeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
 
 	if err := server.ListenAndServe(); err != nil {

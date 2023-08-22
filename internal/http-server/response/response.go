@@ -5,10 +5,6 @@ import (
 	"net/http"
 )
 
-type Success struct {
-	Message string `json:"message"`
-}
-
 type Error struct {
 	Message string `json:"message"`
 }
@@ -24,17 +20,14 @@ type URL struct {
 	Redirects int    `json:"redirects"`
 }
 
-type URLCreated struct {
+type UrlCreated struct {
 	Url   string `json:"url"`
 	Alias string `json:"alias"`
 }
 
-type Token struct {
-	Token string `json:"token"`
-}
-
-type Session struct {
-	SessionID string `bson:"session_id"`
+type TokenPair struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 // InvalidRequestBody sends an error response with 400 Bad Request status code.
@@ -49,5 +42,5 @@ func InvalidAuthToken(ctx *gin.Context) {
 
 // SendError sends an error response with message field.
 func SendError(ctx *gin.Context, statusCode int, message string) {
-	ctx.AbortWithStatusJSON(statusCode, Error{Message: message})
+	ctx.JSON(statusCode, Error{Message: message})
 }
