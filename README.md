@@ -9,7 +9,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 ### Endpoints:
 
 
-### **POST /api/auth/session** - login (create a session)
+#### **POST** `/api/auth/session` - login (create a session)
 
 **Body:**
 
@@ -33,7 +33,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-### **DELETE /api/auth/session** - logout (close a session): 
+#### **DELETE** `/api/auth/session` - logout (close a session): 
 
 **Success response:** `200 OK`
 
@@ -45,7 +45,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-### **POST /api/auth/signup** - registration (create user)
+#### **POST** `/api/auth/signup` - registration (create user)
 
 **Body:**
 
@@ -72,7 +72,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-### **POST /api/auth/refresh** - refresh tokens
+#### **POST** `/api/auth/refresh` - refresh tokens
 
 **Body:**
 
@@ -94,7 +94,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 |:-----|:----------------------|
 | 403  | Invalid refresh token |
 
-### **DELETE /api/user/me** - delete me
+#### **DELETE** `/api/user/me` - delete me
 
 **Success response:** `200 OK`
 
@@ -105,7 +105,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | 400  | Bad request. User not found in database |
 | 401  | Unauthorized                            |
 
-### **GET /api/user/me/urls** - get my URLs
+#### **GET** `/api/user/me/urls` - get my URLs
 
 **Success response:** `200 OK`
 
@@ -125,7 +125,7 @@ Array of URL entities:
 
 ---
 
-### **POST /api/url** - create URL
+#### **POST** `/api/url` - create URL
 
 **Request body:**
 
@@ -151,7 +151,7 @@ Array of URL entities:
 
 ---
 
-### **DELETE /api/url/:alias** - delete URL
+#### **DELETE** `/api/url/:alias` - delete URL
 
 **Success response:** `200 OK`
 
