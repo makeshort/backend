@@ -42,7 +42,7 @@ func main() {
 		}
 	}()
 
-	tokenService := token.New(log, storage, cfg.JwtAccessSecret, cfg.JwtRefreshSecret)
+	tokenService := token.New(log, storage, cfg.JwtAccessSecret)
 	h := handler.New(log, storage, hasher, tokenService)
 
 	server := &http.Server{

@@ -31,12 +31,11 @@ type Pair struct {
 	RefreshToken string
 }
 
-func New(log *slog.Logger, st storage.Storage, accessSecret string, refreshSecret string) *Service {
+func New(log *slog.Logger, st storage.Storage, accessSecret string) *Service {
 	return &Service{
-		log:           log,
-		storage:       st,
-		accessSecret:  []byte(accessSecret),
-		refreshSecret: []byte(refreshSecret),
+		log:          log,
+		storage:      st,
+		accessSecret: []byte(accessSecret),
 	}
 }
 

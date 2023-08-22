@@ -106,7 +106,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 		return
 	}
 
-	url, err := h.storage.GetURL(ctx, alias)
+	url, err := h.storage.GetUrlByAlias(ctx, alias)
 	if err != nil {
 		if errors.Is(err, storage.ErrURLNotFound) {
 			h.log.Info("url doesn't exists", slog.String("alias", alias))
@@ -141,7 +141,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 func (h *Handler) Redirect(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
-	url, err := h.storage.GetURL(ctx, alias)
+	url, err := h.storage.GetUrlByAlias(ctx, alias)
 	if err != nil {
 		if errors.Is(err, storage.ErrURLNotFound) {
 			h.log.Info("url not found", slog.String("alias", alias))
@@ -153,7 +153,7 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 	}
 
 	ctx.Redirect(http.StatusPermanentRedirect, url.Link)
-	err = h.storage.IncrementUrlCounter(ctx, alias)
+	err = h.storage.IncrementRedirectsCounter(ctx, alias)
 	if err != nil {
 		h.log.Error("error while incrementing requests counter", slog.String("alias", alias))
 	}

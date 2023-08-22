@@ -36,11 +36,11 @@ type RefreshSession struct {
 
 type Storage interface {
 	CreateURL(ctx context.Context, link string, alias string, userID primitive.ObjectID) (primitive.ObjectID, error)
-	GetURL(ctx context.Context, alias string) (URL, error)
-	IncrementUrlCounter(ctx context.Context, alias string) error
+	GetUrlByAlias(ctx context.Context, alias string) (URL, error)
+	IncrementRedirectsCounter(ctx context.Context, alias string) error
 	DeleteURL(ctx context.Context, alias string) error
 	CreateUser(ctx context.Context, email string, username string, passwordHash string) (primitive.ObjectID, error)
-	GetUser(ctx context.Context, email string, passwordHash string) (User, error)
+	GetUserByCredentials(ctx context.Context, email string, passwordHash string) (User, error)
 	GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]URL, error)
 	DeleteUser(ctx context.Context, userID primitive.ObjectID) error
 	CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration) (primitive.ObjectID, error)
@@ -49,9 +49,9 @@ type Storage interface {
 }
 
 var (
-	ErrURLNotFound        = errors.New("url not found")
-	ErrAliasAlreadyExists = errors.New("alias already exists")
-	ErrUserNotFound       = errors.New("user not found")
-	ErrUserAlreadyExists  = errors.New("user already exists")
-	NothingToDelete       = errors.New("no documents to delete")
+	ErrURLNotFound            = errors.New("url not found")
+	ErrAliasAlreadyExists     = errors.New("alias already exists")
+	ErrUserNotFound           = errors.New("user not found")
+	ErrUserAlreadyExists      = errors.New("user already exists")
+	ErrRefreshSessionNotFound = errors.New("refresh session not found")
 )

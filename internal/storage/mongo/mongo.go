@@ -94,9 +94,9 @@ func (s *Storage) CreateURL(ctx context.Context, link string, alias string, user
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
-// GetURL returns a storage.URL object from database.
+// GetUrlByAlias returns a storage.URL object from database.
 // If url does not found, function will return a storage.ErrURLNotFound error.
-func (s *Storage) GetURL(ctx context.Context, alias string) (storage.URL, error) {
+func (s *Storage) GetUrlByAlias(ctx context.Context, alias string) (storage.URL, error) {
 	doc := s.urls.FindOne(ctx, bson.D{{"alias", alias}})
 	var url storage.URL
 	if err := doc.Decode(&url); err != nil {
@@ -105,8 +105,8 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (storage.URL, error)
 	return url, nil
 }
 
-// IncrementUrlCounter increments redirects field of storage.URL document in database.
-func (s *Storage) IncrementUrlCounter(ctx context.Context, alias string) error {
+// IncrementRedirectsCounter increments redirects field of storage.URL document in database.
+func (s *Storage) IncrementRedirectsCounter(ctx context.Context, alias string) error {
 	_, err := s.urls.UpdateOne(ctx,
 		bson.D{{"alias", alias}},
 		bson.D{{"$inc", bson.D{{"redirects", 1}}},
@@ -146,9 +146,9 @@ func (s *Storage) CreateUser(ctx context.Context, email string, username string,
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
-// GetUser returns a storage.User object from database.
+// GetUserByCredentials returns a storage.User object from database.
 // If user does not found, function will return a storage.ErrUserNotFound error.
-func (s *Storage) GetUser(ctx context.Context, email string, passwordHash string) (storage.User, error) {
+func (s *Storage) GetUserByCredentials(ctx context.Context, email string, passwordHash string) (storage.User, error) {
 	doc := s.users.FindOne(ctx, bson.D{{"email", email}, {"password_hash", passwordHash}})
 
 	var user storage.User
@@ -203,17 +203,19 @@ func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.Obj
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
+// DeleteRefreshSession deletes a refresh session from database.
 func (s *Storage) DeleteRefreshSession(ctx context.Context, refreshToken string) error {
 	res, err := s.refreshSessions.DeleteOne(ctx, bson.D{{"refresh_token", refreshToken}})
 	if err != nil {
 		return err
 	}
 	if res.DeletedCount == 0 {
-		return storage.NothingToDelete
+		return storage.ErrRefreshSessionNotFound
 	}
 	return nil
 }
 
+// IsRefreshTokenValid checks is the refresh token has an active refresh session.
 func (s *Storage) IsRefreshTokenValid(ctx context.Context, refreshToken string) (isRefreshTokenValid bool, ownerID primitive.ObjectID) {
 	var session storage.RefreshSession
 	doc := s.refreshSessions.FindOne(ctx, bson.D{{"refresh_token", refreshToken}})

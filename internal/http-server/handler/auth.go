@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"net/http"
-	"time"
 )
 
 // Register      Creates a user in database
@@ -80,7 +79,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := h.storage.GetUser(ctx, body.Email, h.hasher.Create(body.Password))
+	user, err := h.storage.GetUserByCredentials(ctx, body.Email, h.hasher.Create(body.Password))
 	if err != nil {
 		response.SendError(ctx, http.StatusNotFound, "user not found")
 		return
@@ -125,7 +124,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 
 	err = h.storage.DeleteRefreshSession(ctx, refreshToken)
 	if err != nil {
-		if errors.Is(err, storage.NothingToDelete) {
+		if errors.Is(err, storage.ErrRefreshSessionNotFound) {
 			response.SendError(ctx, http.StatusNotFound, "refresh session not found")
 			return
 		}
@@ -178,9 +177,7 @@ func (h *Handler) Refresh(ctx *gin.Context) {
 		return
 	}
 
-	cookieMaxAge := 30 * 24 * time.Hour
-
-	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(cookieMaxAge.Seconds()), "/", "localhost", false, true)
+	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(token.RefreshTokenTTL.Seconds()), "/", "localhost", false, true)
 
 	ctx.JSON(http.StatusOK, response.TokenPair{
 		AccessToken:  tokenPair.AccessToken,
