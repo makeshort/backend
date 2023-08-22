@@ -1,9 +1,15 @@
 env: "local" # or dev, prod
 hash_salt: ""
-access_secret: ""
+
+token:
+  access:
+    secret: ""
+    ttl: 15m
+  refresh:
+    ttl: 720h
 
 http:
-  address: "0.0.0.0:8081"
+  address: "0.0.0.0:7531"
   timeout: 4s
   idle_timeout: 60s
 
