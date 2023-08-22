@@ -16,53 +16,24 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/:alias": {
-            "get": {
-                "description": "redirect from alias to it's url",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "url"
-                ],
-                "summary": "Redirect",
-                "responses": {
-                    "308": {
-                        "description": "Permanent Redirect",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/session": {
+        "/auth/refresh": {
             "post": {
-                "description": "create a session",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Create a new token pair",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "session"
+                    "auth"
                 ],
-                "summary": "Create",
+                "summary": "Token refresh",
                 "parameters": [
                     {
-                        "description": "Account credentials",
+                        "description": "Refresh token",
                         "name": "input",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UserLogIn"
+                            "$ref": "#/definitions/request.RefreshToken"
                         }
                     }
                 ],
@@ -70,7 +41,53 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Token"
+                            "$ref": "#/definitions/response.TokenPair"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/session": {
+            "post": {
+                "description": "Creates a session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "Account credentials",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.TokenPair"
                         }
                     },
                     "400": {
@@ -90,22 +107,22 @@ const docTemplate = `{
             "delete": {
                 "security": [
                     {
-                        "SessionIDAuth": []
+                        "AccessToken": []
                     }
                 ],
-                "description": "close a session",
+                "description": "Delete session from database",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "session"
+                    "auth"
                 ],
-                "summary": "Close",
+                "summary": "User logout",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Success"
+                            "type": "integer"
                         }
                     },
                     "401": {
@@ -123,14 +140,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/url": {
+        "/auth/signup": {
             "post": {
-                "security": [
-                    {
-                        "SessionIDAuth": []
-                    }
-                ],
-                "description": "create an url in database",
+                "description": "Creates a user in database",
                 "consumes": [
                     "application/json"
                 ],
@@ -138,116 +150,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "url"
+                    "auth"
                 ],
-                "summary": "Create",
-                "parameters": [
-                    {
-                        "description": "Url data",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.URL"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.URLCreated"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/url/:alias": {
-            "delete": {
-                "security": [
-                    {
-                        "SessionIDAuth": []
-                    }
-                ],
-                "description": "delete an url from database",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "url"
-                ],
-                "summary": "Delete",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/response.Success"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/user": {
-            "post": {
-                "description": "create a user in database",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Create",
+                "summary": "User registration",
                 "parameters": [
                     {
                         "description": "User data",
@@ -287,30 +192,108 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/user/me": {
-            "delete": {
+        "/url": {
+            "post": {
                 "security": [
                     {
-                        "SessionIDAuth": []
+                        "AccessToken": []
                     }
                 ],
-                "description": "delete me in database",
+                "description": "Creates a URL in database, assigned to user",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "user"
+                    "url"
                 ],
-                "summary": "Delete me",
-                "responses": {
-                    "200": {
-                        "description": "OK",
+                "summary": "Create URL",
+                "parameters": [
+                    {
+                        "description": "Url data",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/response.Success"
+                            "$ref": "#/definitions/request.URL"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.UrlCreated"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/url/{alias}": {
+            "delete": {
+                "security": [
+                    {
+                        "AccessToken": []
+                    }
+                ],
+                "description": "Deletes an url from database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "url"
+                ],
+                "summary": "Delete URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/response.Error"
                         }
@@ -330,11 +313,48 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/user/me/urls": {
+        "/user/me": {
+            "delete": {
+                "security": [
+                    {
+                        "AccessToken": []
+                    }
+                ],
+                "description": "Delete me from database",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Delete me",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/me/urls": {
             "get": {
                 "security": [
                     {
-                        "SessionIDAuth": []
+                        "AccessToken": []
                     }
                 ],
                 "description": "Get all URLs created by user",
@@ -361,12 +381,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/response.Error"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.Error"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -378,6 +392,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "request.RefreshToken": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "request.URL": {
             "type": "object",
             "properties": {
@@ -403,7 +425,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UserLogIn": {
+        "request.UserLogin": {
             "type": "object",
             "properties": {
                 "email": {
@@ -422,18 +444,13 @@ const docTemplate = `{
                 }
             }
         },
-        "response.Success": {
+        "response.TokenPair": {
             "type": "object",
             "properties": {
-                "message": {
+                "access_token": {
                     "type": "string"
-                }
-            }
-        },
-        "response.Token": {
-            "type": "object",
-            "properties": {
-                "token": {
+                },
+                "refresh_token": {
                     "type": "string"
                 }
             }
@@ -452,7 +469,7 @@ const docTemplate = `{
                 }
             }
         },
-        "response.URLCreated": {
+        "response.UrlCreated": {
             "type": "object",
             "properties": {
                 "alias": {
@@ -476,9 +493,9 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "SessionIDAuth": {
+        "AccessToken": {
             "type": "apiKey",
-            "name": "SessionID",
+            "name": "Authorization",
             "in": "header"
         }
     }
@@ -486,8 +503,8 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8081",
+	Version:          "0.1",
+	Host:             "localhost:8081/api",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "URL Shortener App API",

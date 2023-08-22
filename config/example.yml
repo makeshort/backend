@@ -1,8 +1,17 @@
-env: "local" # Also you can use dev, prod
-mongo_uri: ""
+env: "local" # or dev, prod
 hash_salt: ""
-http_server:
-  address: "localhost:8081"
+
+token:
+  access:
+    secret: ""
+    ttl: 15m
+  refresh:
+    ttl: 720h
+
+http:
+  address: "0.0.0.0:7531"
   timeout: 4s
   idle_timeout: 60s
-  jwt_signing_key: ""
+
+db:
+  connection_uri: ""
