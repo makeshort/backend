@@ -135,7 +135,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-// Refresh       Create a new token pair
+// RefreshTokens       Create a new token pair
 // @Summary      Token refresh
 // @Description  Create a new token pair
 // @Tags         auth
@@ -145,7 +145,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 // @Failure      403  {object}    response.Error
 // @Failure      500  {object}    response.Error
 // @Router       /auth/refresh    [post]
-func (h *Handler) Refresh(ctx *gin.Context) {
+func (h *Handler) RefreshTokens(ctx *gin.Context) {
 	var body request.RefreshToken
 
 	if err := ctx.BindJSON(&body); err != nil {

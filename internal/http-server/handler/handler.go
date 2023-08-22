@@ -47,7 +47,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			auth.POST("/session", h.Login)
 			auth.DELETE("/session", h.CheckAuth, h.Logout)
 			auth.POST("/signup", h.Register)
-			auth.POST("/refresh", h.Refresh)
+			auth.POST("/refresh", h.RefreshTokens)
 		}
 
 		api.POST("/url", h.CheckAuth, h.CreateURL)
