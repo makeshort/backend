@@ -14,7 +14,6 @@ import (
 
 const (
 	HeaderAuthorization = "Authorization"
-	HeaderSessionID     = "SessionID"
 	ContextUserID       = "UserID"
 	AliasLength         = 6
 )
@@ -34,7 +33,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
 	router.Use(gin.Recovery())
-	router.Use(h.LogRequest)
+	router.Use(h.RequestLog)
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -45,17 +44,24 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/session", h.Login)
-			auth.DELETE("/session", h.CheckAuth, h.Logout)
+			auth.DELETE("/session", h.UserIdentity, h.Logout)
 			auth.POST("/signup", h.Register)
 			auth.POST("/refresh", h.RefreshTokens)
 		}
 
-		api.POST("/url", h.CheckAuth, h.CreateURL)
-		// api.PATCH("/url/:alias", h.CheckAuth, h.UpdateURL)
-		api.DELETE("/url/:alias", h.CheckAuth, h.DeleteURL)
-		// api.PATCH("/user/me", h.CheckAuth, h.UpdateMe)
-		api.DELETE("/user/me", h.CheckAuth, h.DeleteMe)
-		api.GET("/user/me/urls", h.CheckAuth, h.GetMyURLs)
+		url := api.Group("/url", h.UserIdentity)
+		{
+			url.POST("/", h.CreateURL)
+			// url.PATCH("/:alias", h.UpdateURL)
+			url.DELETE("/:alias", h.DeleteURL)
+		}
+
+		user := api.Group("/user", h.UserIdentity)
+		{
+			// user.PATCH("/me", h.UpdateMe)
+			user.DELETE("/me", h.DeleteMe)
+			user.GET("/me/urls", h.GetMyURLs)
+		}
 	}
 
 	h.logRoutes(router.Routes())

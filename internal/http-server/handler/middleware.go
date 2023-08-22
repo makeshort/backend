@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (h *Handler) CheckAuth(ctx *gin.Context) {
+func (h *Handler) UserIdentity(ctx *gin.Context) {
 	header := ctx.GetHeader(HeaderAuthorization)
 	if header == "" {
 		response.SendError(ctx, http.StatusUnauthorized, "empty auth header")
@@ -36,7 +36,7 @@ func (h *Handler) CheckAuth(ctx *gin.Context) {
 	ctx.Set(ContextUserID, claims.UserID)
 }
 
-func (h *Handler) LogRequest(ctx *gin.Context) {
+func (h *Handler) RequestLog(ctx *gin.Context) {
 	startTime := time.Now()
 
 	h.log.Info("request handled",
