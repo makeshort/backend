@@ -14,11 +14,6 @@ import (
 	neturl "net/url"
 )
 
-type CreateURLRequestBody struct {
-	Url   string `json:"url"`
-	Alias string `json:"alias,omitempty"`
-}
-
 // CreateURL     Creates a URL in database, assigned to user
 // @Summary      Create URL
 // @Description  Creates a URL in database, assigned to user
@@ -27,7 +22,7 @@ type CreateURLRequestBody struct {
 // @Accept       json
 // @Produce      json
 // @Param        input body       request.URL true "Url data"
-// @Success      201  {object}    response.URLCreated
+// @Success      201  {object}    response.UrlCreated
 // @Failure      400  {object}    response.Error
 // @Failure      401  {object}    response.Error
 // @Failure      409  {object}    response.Error
@@ -75,7 +70,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, response.URLCreated{
+	ctx.JSON(http.StatusCreated, response.UrlCreated{
 		Url:   body.Url,
 		Alias: alias,
 	})

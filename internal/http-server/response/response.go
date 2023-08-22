@@ -20,7 +20,7 @@ type URL struct {
 	Redirects int    `json:"redirects"`
 }
 
-type URLCreated struct {
+type UrlCreated struct {
 	Url   string `json:"url"`
 	Alias string `json:"alias"`
 }
@@ -42,5 +42,5 @@ func InvalidAuthToken(ctx *gin.Context) {
 
 // SendError sends an error response with message field.
 func SendError(ctx *gin.Context, statusCode int, message string) {
-	ctx.AbortWithStatusJSON(statusCode, Error{Message: message})
+	ctx.JSON(statusCode, Error{Message: message})
 }
