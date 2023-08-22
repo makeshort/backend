@@ -111,10 +111,11 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 Array of URL entities:
 
-| Field | Type   |
-|:------|:-------|
-| url   | string |
-| alias | string |
+| Field     | Type   |
+|:----------|:-------|
+| url       | string |
+| alias     | string |
+| redirects | int    |
 
 **Possible errors:**
 

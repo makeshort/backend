@@ -5,10 +5,6 @@ import (
 	"net/http"
 )
 
-type Success struct {
-	Message string `json:"message"`
-}
-
 type Error struct {
 	Message string `json:"message"`
 }
@@ -27,14 +23,6 @@ type URL struct {
 type URLCreated struct {
 	Url   string `json:"url"`
 	Alias string `json:"alias"`
-}
-
-type Token struct {
-	Token string `json:"token"`
-}
-
-type Session struct {
-	SessionID string `bson:"session_id"`
 }
 
 type TokenPair struct {
