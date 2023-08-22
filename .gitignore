@@ -7,3 +7,6 @@ config/local.yml
 
 # Ingore swag cache files
 *.DS_Store
+
+# Ignore binary files
+.bin/
