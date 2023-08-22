@@ -32,7 +32,7 @@ type Server struct {
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
 }
 
-// MustLoad loads config to a new Config instance and return it.
+// MustLoad loads config to a new Config instance and return it
 func MustLoad() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("no .env file found")

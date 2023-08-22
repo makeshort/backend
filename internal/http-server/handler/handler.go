@@ -25,10 +25,12 @@ type Handler struct {
 	tokenService *token.Service
 }
 
+// New returns a new instance of Handler
 func New(log *slog.Logger, storage storage.Storage, hasher *hash.Hasher, tokenService *token.Service) *Handler {
 	return &Handler{log: log, storage: storage, hasher: hasher, tokenService: tokenService}
 }
 
+// InitRoutes create a new routes list for Handler
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 
@@ -69,6 +71,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	return router
 }
 
+// logRoutes logs all routes for Handler
 func (h *Handler) logRoutes(routes gin.RoutesInfo) {
 	for _, route := range routes {
 		method := format.CompleteStringToLength(route.Method, 10, ' ')

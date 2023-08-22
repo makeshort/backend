@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// UserIdentity parse access token in Authorization header and set UserID in context
 func (h *Handler) UserIdentity(ctx *gin.Context) {
 	header := ctx.GetHeader(HeaderAuthorization)
 	if header == "" {
@@ -36,6 +37,7 @@ func (h *Handler) UserIdentity(ctx *gin.Context) {
 	ctx.Set(ContextUserID, claims.UserID)
 }
 
+// RequestLog logs every request with parameters: method, path, client_ip, remote_addr, user_agent, status and duration
 func (h *Handler) RequestLog(ctx *gin.Context) {
 	startTime := time.Now()
 

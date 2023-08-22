@@ -189,10 +189,12 @@ func (s *Storage) DeleteUser(ctx context.Context, userID primitive.ObjectID) err
 }
 
 // CreateRefreshSession creates a new refresh session with refresh token assigned to user
-func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration) (primitive.ObjectID, error) {
+func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration, ip string, userAgent string) (primitive.ObjectID, error) {
 	doc, err := s.refreshSessions.InsertOne(ctx, storage.RefreshSession{
 		UserID:       userID,
 		RefreshToken: refreshToken,
+		IP:           ip,
+		UserAgent:    userAgent,
 		CreatedAt:    primitive.NewDateTimeFromTime(time.Now()),
 		ExpiresAt:    primitive.NewDateTimeFromTime(time.Now().Add(timeToLive)),
 	})

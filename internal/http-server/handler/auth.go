@@ -91,7 +91,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	_, err = h.storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, token.RefreshTokenTTL)
+	_, err = h.storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, token.RefreshTokenTTL, ctx.ClientIP(), ctx.Request.UserAgent())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
 		return
@@ -135,16 +135,16 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-// RefreshTokens       Create a new token pair
-// @Summary      Token refresh
-// @Description  Create a new token pair
-// @Tags         auth
-// @Param        input body       request.RefreshToken true "Refresh token"
-// @Produce      json
-// @Success      200  {object}    response.TokenPair
-// @Failure      403  {object}    response.Error
-// @Failure      500  {object}    response.Error
-// @Router       /auth/refresh    [post]
+// RefreshTokens     Create a new token pair
+// @Summary          Token refresh
+// @Description      Create a new token pair
+// @Tags             auth
+// @Param            input body       request.RefreshToken true "Refresh token"
+// @Produce          json
+// @Success          200  {object}    response.TokenPair
+// @Failure          403  {object}    response.Error
+// @Failure          500  {object}    response.Error
+// @Router           /auth/refresh    [post]
 func (h *Handler) RefreshTokens(ctx *gin.Context) {
 	var body request.RefreshToken
 
@@ -171,7 +171,7 @@ func (h *Handler) RefreshTokens(ctx *gin.Context) {
 		return
 	}
 
-	_, err = h.storage.CreateRefreshSession(ctx, userID, tokenPair.RefreshToken, token.RefreshTokenTTL)
+	_, err = h.storage.CreateRefreshSession(ctx, userID, tokenPair.RefreshToken, token.RefreshTokenTTL, ctx.ClientIP(), ctx.Request.UserAgent())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
 		return

@@ -30,6 +30,8 @@ type RefreshSession struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
 	UserID       primitive.ObjectID `bson:"user_id"`
 	RefreshToken string             `bson:"refresh_token"`
+	IP           string             `bson:"ip"`
+	UserAgent    string             `bson:"user_agent"`
 	CreatedAt    primitive.DateTime `bson:"created_at"`
 	ExpiresAt    primitive.DateTime `bson:"expires_at"`
 }
@@ -43,7 +45,7 @@ type Storage interface {
 	GetUserByCredentials(ctx context.Context, email string, passwordHash string) (User, error)
 	GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]URL, error)
 	DeleteUser(ctx context.Context, userID primitive.ObjectID) error
-	CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration) (primitive.ObjectID, error)
+	CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, timeToLive time.Duration, ip string, userAgent string) (primitive.ObjectID, error)
 	DeleteRefreshSession(ctx context.Context, refreshToken string) error
 	IsRefreshTokenValid(ctx context.Context, refreshToken string) (isRefreshTokenValid bool, ownerID primitive.ObjectID)
 }
