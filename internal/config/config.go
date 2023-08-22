@@ -15,14 +15,18 @@ const (
 )
 
 type Config struct {
-	Env             string     `yaml:"env" env-required:"true"`
-	MongoURI        string     `yaml:"mongo_uri" env-required:"true"`
-	HashSalt        string     `yaml:"hash_salt"`
-	JwtAccessSecret string     `yaml:"jwt_access_secret" env-required:"true"`
-	HTTPServer      HTTPServer `yaml:"http_server" env-required:"true"`
+	Env          string `yaml:"env" env-required:"true"`
+	HashSalt     string `yaml:"hash_salt" env-required:"true"`
+	AccessSecret string `yaml:"access_secret" env-required:"true"`
+	Db           Db     `yaml:"db" env-required:"true"`
+	Server       Server `yaml:"http" env-required:"true"`
 }
 
-type HTTPServer struct {
+type Db struct {
+	ConnectionURI string `yaml:"connection_uri" env-required:"true"`
+}
+
+type Server struct {
 	Address     string        `yaml:"address" env-required:"true"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
