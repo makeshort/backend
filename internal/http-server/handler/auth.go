@@ -65,13 +65,13 @@ func (h *Handler) Register(ctx *gin.Context) {
 // @Tags          auth
 // @Accept        json
 // @Produce       json
-// @Param         input body       request.UserLogIn true "Account credentials"
+// @Param         input body       request.UserLogin true "Account credentials"
 // @Success       200  {object}    response.TokenPair
 // @Failure       400  {object}    response.Error
 // @Failure       500  {object}    response.Error
 // @Router        /auth/session    [post]
 func (h *Handler) Login(ctx *gin.Context) {
-	var body request.UserLogIn
+	var body request.UserLogin
 
 	if err := ctx.BindJSON(&body); err != nil {
 		h.log.Error("failed to decode request body", sl.Err(err))
