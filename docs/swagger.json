@@ -6,8 +6,8 @@
         "contact": {},
         "version": "0.1"
     },
-    "host": "localhost:8081/api",
-    "basePath": "/",
+    "host": "localhost:8081",
+    "basePath": "/api",
     "paths": {
         "/auth/refresh": {
             "post": {

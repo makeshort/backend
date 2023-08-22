@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api
 definitions:
   request.RefreshToken:
     properties:
@@ -63,7 +63,7 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:8081/api
+host: localhost:8081
 info:
   contact: {}
   description: API Server for URL Shortener Application

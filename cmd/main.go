@@ -19,8 +19,8 @@ import (
 // @title                        URL Shortener App API
 // @version                      0.1
 // @description                  API Server for URL Shortener Application
-// @host                         localhost:8081/api
-// @BasePath                     /
+// @host                         localhost:8081
+// @BasePath                     /api
 // @securityDefinitions.apikey   AccessToken
 // @in                           header
 // @name                         Authorization
