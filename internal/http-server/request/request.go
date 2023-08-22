@@ -6,7 +6,7 @@ type UserCreate struct {
 	Password string `json:"password"`
 }
 
-type UserLogIn struct {
+type UserLogin struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -14,4 +14,8 @@ type UserLogIn struct {
 type URL struct {
 	Url   string `json:"url"`
 	Alias string `json:"alias,omitempty"`
+}
+
+type RefreshToken struct {
+	Token string `json:"token"`
 }

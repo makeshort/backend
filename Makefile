@@ -1,2 +1,2 @@
 swag:
-	swag init -g cmd/url-shortener/main.go
+	swag init -g cmd/main.go

@@ -1,4 +1,4 @@
-package alias
+package random
 
 import (
 	"math/rand"
@@ -7,7 +7,7 @@ import (
 
 const chars = "abcdefghijklmnopqrstuvwxuz0123456789"
 
-// Generate generates an random chars string given length. Great compatible for alias.
+// Generate generates a random string given length. Great compatible for alias.
 func Generate(size int) string {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	chars := []rune(chars)
