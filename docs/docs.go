@@ -110,7 +110,7 @@ const docTemplate = `{
                         "AccessToken": []
                     }
                 ],
-                "description": "Close a session",
+                "description": "Remove a cookie and delete session from database",
                 "produces": [
                     "application/json"
                 ],

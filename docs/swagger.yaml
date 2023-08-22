@@ -100,7 +100,7 @@ paths:
       - auth
   /auth/session:
     delete:
-      description: Close a session
+      description: Remove a cookie and delete session from database
       produces:
       - application/json
       responses:
