@@ -1,12 +1,10 @@
-# Ignore IDE files
+# Ignore IDE files, temporarily files & attributes
 .idea/
-
-# Ignore config files
-.env
-config/local.yml
-
-# Ingore swag cache files
 *.DS_Store
 
 # Ignore binary files
 .bin/
+
+# Ignore config files
+.env
+config/local.yml
