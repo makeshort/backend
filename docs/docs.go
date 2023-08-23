@@ -26,17 +26,6 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Token refresh",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.RefreshToken"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -105,11 +94,6 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
                 "description": "Delete session from database",
                 "produces": [
                     "application/json"
@@ -392,14 +376,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "request.RefreshToken": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "request.URL": {
             "type": "object",
             "properties": {
