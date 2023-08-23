@@ -18,6 +18,7 @@ type Config struct {
 	Env      string `yaml:"env" env-required:"true"`
 	HashSalt string `yaml:"hash_salt" env-required:"true"`
 	Token    Token  `yaml:"token" env-required:"true"`
+	Cookie   Cookie `yaml:"cookie"`
 	Db       Db     `yaml:"db" env-required:"true"`
 	Server   Server `yaml:"http" env-required:"true"`
 }
@@ -25,6 +26,16 @@ type Config struct {
 type Token struct {
 	Access  TokenAccess  `yaml:"access"`
 	Refresh TokenRefresh `yaml:"refresh"`
+}
+
+type Cookie struct {
+	RefreshToken RefreshTokenCookie `yaml:"refresh_token"`
+}
+
+type RefreshTokenCookie struct {
+	Name   string `yaml:"name"`
+	Path   string `yaml:"path"`
+	Domain string `yaml:"domain"`
 }
 
 type TokenAccess struct {

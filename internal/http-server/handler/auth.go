@@ -176,7 +176,7 @@ func (h *Handler) RefreshTokens(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), "/", "localhost", false, true)
+	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
 	ctx.JSON(http.StatusOK, response.TokenPair{
 		AccessToken:  tokenPair.AccessToken,
