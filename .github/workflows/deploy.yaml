@@ -23,4 +23,4 @@ jobs:
       - name: Build app
         run: |
           go mod download
-          go build -o backend ./cmd/
+          make build
