@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+const (
+	CollectionUsers    = "users"
+	CollectionUrls     = "urls"
+	CollectionSessions = "sessions"
+)
+
 type Storage struct {
 	Client          *mongo.Client
 	config          *config.Config
@@ -20,24 +26,24 @@ type Storage struct {
 }
 
 // New returns a new Storage instance
-func New(config *config.Config) *Storage {
+func New(cfg *config.Config) *Storage {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.Db.ConnectionURI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Db.ConnectionURI))
 	if err != nil {
 		panic(err)
 	}
 
 	var dbName string
-	if config.Env == "prod" {
-		dbName = config.Env
+	if cfg.Env == config.EnvProduction {
+		dbName = cfg.Env
 	} else {
-		dbName = "dev"
+		dbName = config.EnvDevelopment
 	}
 
 	db := client.Database(dbName)
-	urls := db.Collection("urls")
+	urls := db.Collection(CollectionUrls)
 	_, err = urls.Indexes().CreateOne(
 		ctx,
 		mongo.IndexModel{
@@ -49,31 +55,44 @@ func New(config *config.Config) *Storage {
 		panic(err)
 	}
 
-	users := db.Collection("users")
-	_, err = users.Indexes().CreateOne(
+	users := db.Collection(CollectionUsers)
+	_, err = users.Indexes().CreateMany(
 		ctx,
-		mongo.IndexModel{
-			Keys:    bson.D{{Key: "email", Value: 1}},
-			Options: options.Index().SetUnique(true),
+		[]mongo.IndexModel{
+			{
+				Keys:    bson.D{{Key: "email", Value: 1}},
+				Options: options.Index().SetUnique(true),
+			},
+			{
+				Keys:    bson.D{{Key: "username", Value: 1}},
+				Options: options.Index().SetUnique(true),
+			},
 		},
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	refreshSessions := db.Collection("refresh_sessions")
-	_, err = refreshSessions.Indexes().CreateOne(
+	refreshSessions := db.Collection(CollectionSessions)
+
+	_, err = refreshSessions.Indexes().CreateMany(
 		ctx,
-		mongo.IndexModel{
-			Keys:    bson.D{{"expires_at", 1}},
-			Options: options.Index().SetExpireAfterSeconds(0),
+		[]mongo.IndexModel{
+			{
+				Keys:    bson.D{{"expires_at", 1}},
+				Options: options.Index().SetExpireAfterSeconds(0),
+			},
+			{
+				Keys:    bson.D{{"refresh_token", 1}},
+				Options: options.Index().SetUnique(true),
+			},
 		},
 	)
 	if err != nil {
 		panic(err)
 	}
 
-	return &Storage{Client: client, config: config, urls: urls, users: users, refreshSessions: refreshSessions}
+	return &Storage{Client: client, config: cfg, urls: urls, users: users, refreshSessions: refreshSessions}
 }
 
 // CreateURL creates a URL document in database

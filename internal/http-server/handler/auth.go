@@ -44,7 +44,7 @@ func (h *Handler) Register(ctx *gin.Context) {
 	userID, err := h.storage.CreateUser(ctx, body.Email, body.Username, passwordHash)
 	if errors.Is(err, storage.ErrUserAlreadyExists) {
 		h.log.Info("user already exists")
-		response.SendError(ctx, http.StatusConflict, "user with this email already exists")
+		response.SendError(ctx, http.StatusConflict, "user with this email or username already exists")
 		return
 	}
 
