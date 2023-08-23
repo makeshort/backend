@@ -15,7 +15,3 @@ type URL struct {
 	Url   string `json:"url"`
 	Alias string `json:"alias,omitempty"`
 }
-
-type RefreshToken struct {
-	Token string `json:"token"`
-}

@@ -8,6 +8,12 @@ token:
   refresh:
     ttl: 720h
 
+cookie:
+  refresh_token:
+    name: ""
+    path: ""
+    domain: ""
+
 http:
   address: "0.0.0.0:7531"
   timeout: 4s
