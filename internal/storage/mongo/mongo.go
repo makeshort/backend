@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+const (
+	CollectionUsers    = "users"
+	CollectionUrls     = "urls"
+	CollectionSessions = "sessions"
+)
+
 type Storage struct {
 	Client          *mongo.Client
 	config          *config.Config
@@ -20,24 +26,24 @@ type Storage struct {
 }
 
 // New returns a new Storage instance
-func New(config *config.Config) *Storage {
+func New(cfg *config.Config) *Storage {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.Db.ConnectionURI))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.Db.ConnectionURI))
 	if err != nil {
 		panic(err)
 	}
 
 	var dbName string
-	if config.Env == "prod" {
-		dbName = config.Env
+	if cfg.Env == config.EnvProduction {
+		dbName = cfg.Env
 	} else {
-		dbName = "dev"
+		dbName = config.EnvDevelopment
 	}
 
 	db := client.Database(dbName)
-	urls := db.Collection("urls")
+	urls := db.Collection(CollectionUrls)
 	_, err = urls.Indexes().CreateOne(
 		ctx,
 		mongo.IndexModel{
@@ -49,7 +55,7 @@ func New(config *config.Config) *Storage {
 		panic(err)
 	}
 
-	users := db.Collection("users")
+	users := db.Collection(CollectionUsers)
 	_, err = users.Indexes().CreateOne(
 		ctx,
 		mongo.IndexModel{
@@ -61,7 +67,7 @@ func New(config *config.Config) *Storage {
 		panic(err)
 	}
 
-	refreshSessions := db.Collection("refresh_sessions")
+	refreshSessions := db.Collection(CollectionSessions)
 	_, err = refreshSessions.Indexes().CreateOne(
 		ctx,
 		mongo.IndexModel{
@@ -73,7 +79,7 @@ func New(config *config.Config) *Storage {
 		panic(err)
 	}
 
-	return &Storage{Client: client, config: config, urls: urls, users: users, refreshSessions: refreshSessions}
+	return &Storage{Client: client, config: cfg, urls: urls, users: users, refreshSessions: refreshSessions}
 }
 
 // CreateURL creates a URL document in database
