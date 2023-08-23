@@ -56,11 +56,17 @@ func New(cfg *config.Config) *Storage {
 	}
 
 	users := db.Collection(CollectionUsers)
-	_, err = users.Indexes().CreateOne(
+	_, err = users.Indexes().CreateMany(
 		ctx,
-		mongo.IndexModel{
-			Keys:    bson.D{{Key: "email", Value: 1}},
-			Options: options.Index().SetUnique(true),
+		[]mongo.IndexModel{
+			{
+				Keys:    bson.D{{Key: "email", Value: 1}},
+				Options: options.Index().SetUnique(true),
+			},
+			{
+				Keys:    bson.D{{Key: "username", Value: 1}},
+				Options: options.Index().SetUnique(true),
+			},
 		},
 	)
 	if err != nil {
@@ -68,11 +74,18 @@ func New(cfg *config.Config) *Storage {
 	}
 
 	refreshSessions := db.Collection(CollectionSessions)
-	_, err = refreshSessions.Indexes().CreateOne(
+
+	_, err = refreshSessions.Indexes().CreateMany(
 		ctx,
-		mongo.IndexModel{
-			Keys:    bson.D{{"expires_at", 1}},
-			Options: options.Index().SetExpireAfterSeconds(0),
+		[]mongo.IndexModel{
+			{
+				Keys:    bson.D{{"expires_at", 1}},
+				Options: options.Index().SetExpireAfterSeconds(0),
+			},
+			{
+				Keys:    bson.D{{"refresh_token", 1}},
+				Options: options.Index().SetUnique(true),
+			},
 		},
 	)
 	if err != nil {
