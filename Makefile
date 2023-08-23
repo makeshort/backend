@@ -1,7 +1,7 @@
 build:
-	go build -o ./.bin/makeshort-backend ./cmd/main.go
+	go build -o ./.bin/makeshort-backend ./cmd/makeshort-backend/main.go
 
-run:
+run: build
 	./.bin/makeshort-backend
 
 swag:
