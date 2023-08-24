@@ -1,10 +1,17 @@
-# Ignore IDE files, temporarily files & attributes
-.idea/
-*.DS_Store
+# Ignore config files
+.env
+config/*.yml
 
 # Ignore binary files
 .bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
-# Ignore config files
-.env
-config/local.yml
+# Mac OS X files
+.DS_Store
+
+# Ignore IDE files
+.idea/
