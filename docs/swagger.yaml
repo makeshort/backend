@@ -1,10 +1,5 @@
-basePath: /
+basePath: /api
 definitions:
-  request.RefreshToken:
-    properties:
-      token:
-        type: string
-    type: object
   request.URL:
     properties:
       alias:
@@ -63,7 +58,7 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:8081/api
+host: localhost:8081
 info:
   contact: {}
   description: API Server for URL Shortener Application
@@ -73,13 +68,6 @@ paths:
   /auth/refresh:
     post:
       description: Create a new token pair
-      parameters:
-      - description: Refresh token
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/request.RefreshToken'
       produces:
       - application/json
       responses:
@@ -116,8 +104,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Error'
-      security:
-      - AccessToken: []
       summary: User logout
       tags:
       - auth

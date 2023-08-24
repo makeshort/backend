@@ -44,7 +44,7 @@ func (h *Handler) Register(ctx *gin.Context) {
 	userID, err := h.storage.CreateUser(ctx, body.Email, body.Username, passwordHash)
 	if errors.Is(err, storage.ErrUserAlreadyExists) {
 		h.log.Info("user already exists")
-		response.SendError(ctx, http.StatusConflict, "user with this email already exists")
+		response.SendError(ctx, http.StatusConflict, "user with this email or username already exists")
 		return
 	}
 
@@ -96,7 +96,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), "/", "localhost", false, true)
+	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
 	ctx.JSON(http.StatusOK, response.TokenPair{
 		AccessToken:  tokenPair.AccessToken,
@@ -107,7 +107,6 @@ func (h *Handler) Login(ctx *gin.Context) {
 // Logout        Delete session from database
 // @Summary      User logout
 // @Description  Delete session from database
-// @Security     AccessToken
 // @Tags         auth
 // @Produce      json
 // @Success      200  {integer}   integer 1
@@ -118,8 +117,9 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	refreshToken, err := ctx.Cookie("refresh_token")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Error{Message: "refresh token is invalid"})
+		return
 	}
-	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
+	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, "", -1, h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
 	err = h.storage.DeleteRefreshSession(ctx, refreshToken)
 	if err != nil {
@@ -138,28 +138,25 @@ func (h *Handler) Logout(ctx *gin.Context) {
 // @Summary          Token refresh
 // @Description      Create a new token pair
 // @Tags             auth
-// @Param            input body       request.RefreshToken true "Refresh token"
 // @Produce          json
 // @Success          200  {object}    response.TokenPair
 // @Failure          403  {object}    response.Error
 // @Failure          500  {object}    response.Error
 // @Router           /auth/refresh    [post]
 func (h *Handler) RefreshTokens(ctx *gin.Context) {
-	var body request.RefreshToken
-
-	if err := ctx.BindJSON(&body); err != nil {
-		h.log.Error("failed to decode request body", sl.Err(err))
-		response.InvalidRequestBody(ctx)
+	refreshToken, err := ctx.Cookie(h.config.Cookie.RefreshToken.Name)
+	if err != nil {
+		response.SendError(ctx, http.StatusForbidden, "no refresh token cookie")
 		return
 	}
 
-	isRefreshTokenValid, userID := h.storage.IsRefreshTokenValid(ctx, body.Token)
+	isRefreshTokenValid, userID := h.storage.IsRefreshTokenValid(ctx, refreshToken)
 	if !isRefreshTokenValid {
 		response.SendError(ctx, http.StatusForbidden, "invalid refresh token")
 		return
 	}
 
-	err := h.storage.DeleteRefreshSession(ctx, body.Token)
+	err = h.storage.DeleteRefreshSession(ctx, refreshToken)
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't delete refresh session")
 	}
@@ -176,7 +173,7 @@ func (h *Handler) RefreshTokens(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("refresh_token", tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), "/", "localhost", false, true)
+	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
 	ctx.JSON(http.StatusOK, response.TokenPair{
 		AccessToken:  tokenPair.AccessToken,

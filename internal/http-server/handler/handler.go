@@ -48,7 +48,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/session", h.Login)
-			auth.DELETE("/session", h.UserIdentity, h.Logout)
+			auth.DELETE("/session", h.Logout)
 			auth.POST("/signup", h.Register)
 			auth.POST("/refresh", h.RefreshTokens)
 		}

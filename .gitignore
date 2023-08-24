@@ -1,10 +1,17 @@
-# Ignore IDE files
-.idea/
-.bin/
-
 # Ignore config files
 .env
-config/local.yml
+config/*.yml
 
-# Ingore swag cache files
-*.DS_Store
+# Ignore binary files
+.bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Mac OS X files
+.DS_Store
+
+# Ignore IDE files
+.idea/

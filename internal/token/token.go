@@ -11,11 +11,10 @@ import (
 )
 
 type Service struct {
-	log           *slog.Logger
-	storage       storage.Storage
-	config        *config.Config
-	accessSecret  []byte
-	refreshSecret []byte
+	log          *slog.Logger
+	storage      storage.Storage
+	config       *config.Config
+	accessSecret []byte
 }
 
 type Claims struct {
