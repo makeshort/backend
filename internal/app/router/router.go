@@ -7,6 +7,7 @@ import (
 	"backend/internal/config"
 	"backend/internal/lib/logger/format"
 	"fmt"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -39,6 +40,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 
 	router.Use(gin.Recovery())
 	router.Use(r.middleware.RequestLog)
+	router.Use(requestid.New())
 
 	router.GET("/:alias", r.handler.Redirect)
 

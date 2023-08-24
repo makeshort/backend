@@ -4,9 +4,9 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
 	"backend/internal/config"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -34,24 +34,24 @@ func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Middle
 func (m *Middleware) UserIdentity(ctx *gin.Context) {
 	header := ctx.GetHeader(HeaderAuthorization)
 	if header == "" {
-		response.SendError(ctx, http.StatusUnauthorized, "empty auth header")
+		response.SendAuthFailedError(ctx)
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		response.SendError(ctx, http.StatusUnauthorized, "invalid auth header")
+		response.SendAuthFailedError(ctx)
 		return
 	}
 
 	if len(headerParts[1]) == 0 {
-		response.SendError(ctx, http.StatusUnauthorized, "token is invalid")
+		response.SendAuthFailedError(ctx)
 		return
 	}
 
 	claims, err := m.service.TokenManager.ParseJWT(headerParts[1])
 	if err != nil {
-		response.SendError(ctx, http.StatusUnauthorized, "token is invalid")
+		response.SendAuthFailedError(ctx)
 		return
 	}
 
@@ -63,12 +63,14 @@ func (m *Middleware) RequestLog(ctx *gin.Context) {
 	startTime := time.Now()
 
 	m.log.Info("request handled",
+		slog.String("request_id", requestid.Get(ctx)),
 		slog.String("method", ctx.Request.Method),
 		slog.String("path", ctx.Request.URL.Path),
 		slog.String("client_ip", ctx.ClientIP()),
 	)
 
 	entry := m.log.With(
+		slog.String("request_id", requestid.Get(ctx)),
 		slog.String("method", ctx.Request.Method),
 		slog.String("path", ctx.Request.URL.Path),
 		slog.String("remote_addr", ctx.Request.RemoteAddr),

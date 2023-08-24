@@ -35,8 +35,8 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 	var body request.URL
 
 	if err := ctx.BindJSON(&body); err != nil {
-		h.log.Error("can't decode request body")
-		response.InvalidRequestBody(ctx)
+		h.log.Debug("error occurred while decode request body", sl.Err(err))
+		response.SendInvalidRequestBodyError(ctx)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err), slog.String("id", id))
-		response.InvalidAuthToken(ctx)
+		response.SendAuthFailedError(ctx)
 		return
 	}
 
@@ -100,7 +100,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
-		response.InvalidAuthToken(ctx)
+		response.SendAuthFailedError(ctx)
 		return
 	}
 

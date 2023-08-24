@@ -65,7 +65,7 @@ func (h *Handler) GetMyURLs(ctx *gin.Context) {
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
-		response.InvalidAuthToken(ctx)
+		response.SendAuthFailedError(ctx)
 		return
 	}
 
