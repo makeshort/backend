@@ -19,4 +19,4 @@ WORKDIR /root/
 COPY --from=0 /makeshort-backend/.bin/ ./.bin
 COPY --from=0 /makeshort-backend/config/ ./config
 
-CMD ["./makeshort-backend"]
+CMD ["./.bin/makeshort-backend"]
