@@ -59,9 +59,7 @@ type Server struct {
 
 // MustLoad loads config to a new Config instance and return it
 func MustLoad() *Config {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("no .env file found")
-	}
+	_ = godotenv.Load()
 
 	configPath := os.Getenv("CONFIG_PATH")
 
