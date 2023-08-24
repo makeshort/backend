@@ -26,17 +26,6 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "Token refresh",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.RefreshToken"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -105,11 +94,6 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
                 "description": "Delete session from database",
                 "produces": [
                     "application/json"
@@ -392,14 +376,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "request.RefreshToken": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "request.URL": {
             "type": "object",
             "properties": {
@@ -504,8 +480,8 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1",
-	Host:             "localhost:8081/api",
-	BasePath:         "/",
+	Host:             "localhost:8081",
+	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "URL Shortener App API",
 	Description:      "API Server for URL Shortener Application",

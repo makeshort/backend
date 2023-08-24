@@ -6,8 +6,8 @@
         "contact": {},
         "version": "0.1"
     },
-    "host": "localhost:8081/api",
-    "basePath": "/",
+    "host": "localhost:8081",
+    "basePath": "/api",
     "paths": {
         "/auth/refresh": {
             "post": {
@@ -19,17 +19,6 @@
                     "auth"
                 ],
                 "summary": "Token refresh",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.RefreshToken"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -98,11 +87,6 @@
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
                 "description": "Delete session from database",
                 "produces": [
                     "application/json"
@@ -385,14 +369,6 @@
         }
     },
     "definitions": {
-        "request.RefreshToken": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "request.URL": {
             "type": "object",
             "properties": {

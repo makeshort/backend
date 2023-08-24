@@ -42,5 +42,5 @@ func InvalidAuthToken(ctx *gin.Context) {
 
 // SendError sends an error response with message field.
 func SendError(ctx *gin.Context, statusCode int, message string) {
-	ctx.JSON(statusCode, Error{Message: message})
+	ctx.AbortWithStatusJSON(statusCode, Error{Message: message})
 }

@@ -10,17 +10,20 @@ import (
 	"backend/internal/storage/mongo"
 	"backend/internal/token"
 	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 // @title                        URL Shortener App API
 // @version                      0.1
 // @description                  API Server for URL Shortener Application
-// @host                         localhost:8081/api
-// @BasePath                     /
+// @host                         localhost:8081
+// @BasePath                     /api
 // @securityDefinitions.apikey   AccessToken
 // @in                           header
 // @name                         Authorization
@@ -31,16 +34,10 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 
-	log.Info("url shortener rest api server running", slog.String("env", cfg.Env))
+	log.Info("make.short backend running", slog.String("env", cfg.Env))
 
 	storage := mongo.New(cfg)
 	log.Info("mongo client started")
-	defer func() {
-		err := storage.Client.Disconnect(context.Background())
-		if err != nil {
-			log.Error("failed to disconnect mongo client", err)
-		}
-	}()
 
 	tokenService := token.New(log, storage, cfg)
 	h := handler.New(log, storage, hasher, tokenService, cfg)
@@ -53,11 +50,35 @@ func main() {
 		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
 
-	if err := server.ListenAndServe(); err != nil {
-		log.Error("failed to start server", sl.Err(err))
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			if !errors.Is(err, http.ErrServerClosed) {
+				log.Error("failed to start server", sl.Err(err))
+			}
+		}
+	}()
+
+	log.Info("server started")
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	log.Info("server shutting down")
+
+	err := server.Shutdown(context.Background())
+	if err != nil {
+		log.Error("error occurred on server shutting down: %s", err.Error())
 	}
 
-	log.Error("server stopped")
+	log.Info("server stopped")
+
+	err = storage.Client.Disconnect(context.Background())
+	if err != nil {
+		log.Error("error occurred on db shutting down: %s", err.Error())
+	}
+
+	log.Info("db disconnected")
 }
 
 func initLogger(env string) *slog.Logger {

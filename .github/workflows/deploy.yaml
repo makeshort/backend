@@ -9,9 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HOST: ${{ secrets.HOST }}
-      DEPLOY_DIRECTORY: /root/apps/url-shortener
-      CONFIG_PATH: /root/apps/url-shortener/config/prod.yaml
-      ENV_FILE_PATH: /root/apps/url-shortener/config.env
+      DEPLOY_DIRECTORY: /root/apps/makeshort/backend
+      CONFIG_PATH: /root/apps/makeshort/backend/config/prod.yaml
+      ENV_FILE_PATH: /root/apps/makeshort/backend/config.env
 
     steps:
       - name: Checkout repository
@@ -23,4 +23,4 @@ jobs:
       - name: Build app
         run: |
           go mod download
-          go build -o url_shortener ./cmd/url-shortener
+          make build
