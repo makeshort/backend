@@ -79,7 +79,6 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		response.SendError(ctx, http.StatusConflict, "alias already exists")
 		return
 	}
-
 	if err != nil {
 		log.Error("error occurred while saving url to database",
 			slog.String("url", parsedUrl),
@@ -134,19 +133,19 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 	}
 
 	url, err := h.service.Storage.GetUrlByAlias(ctx, alias)
+	if errors.Is(err, storage.ErrURLNotFound) {
+		log.Debug("url doesn't exists",
+			slog.String("alias", alias),
+		)
+		response.SendError(ctx, http.StatusNotFound, "url not found")
+		return
+	}
 	if err != nil {
-		if errors.Is(err, storage.ErrURLNotFound) {
-			log.Debug("url doesn't exists",
-				slog.String("alias", alias),
-			)
-			response.SendError(ctx, http.StatusNotFound, "url not found")
-		} else {
-			log.Error("error while getting url",
-				slog.String("alias", alias),
-				sl.Err(err),
-			)
-			response.SendError(ctx, http.StatusInternalServerError, "can't get url")
-		}
+		log.Error("error while getting url",
+			slog.String("alias", alias),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't get url")
 		return
 	}
 
@@ -161,19 +160,19 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 	}
 
 	err = h.service.Storage.DeleteURL(ctx, alias)
+	if errors.Is(err, storage.ErrURLNotFound) {
+		log.Debug("no url to delete",
+			slog.String("alias", alias),
+		)
+		response.SendError(ctx, http.StatusNotFound, "no url to delete")
+		return
+	}
 	if err != nil {
-		if errors.Is(err, storage.ErrURLNotFound) {
-			log.Debug("no url to delete",
-				slog.String("alias", alias),
-			)
-			response.SendError(ctx, http.StatusNotFound, "no url to delete")
-		} else {
-			log.Error("error occurred while deleting url",
-				slog.String("alias", alias),
-				sl.Err(err),
-			)
-			response.SendError(ctx, http.StatusInternalServerError, "failed to delete url")
-		}
+		log.Error("error occurred while deleting url",
+			slog.String("alias", alias),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "failed to delete url")
 		return
 	}
 
@@ -192,16 +191,16 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
 	url, err := h.service.Storage.GetUrlByAlias(ctx, alias)
+	if errors.Is(err, storage.ErrURLNotFound) {
+		response.SendError(ctx, http.StatusNotFound, "url not found")
+		return
+	}
 	if err != nil {
-		if errors.Is(err, storage.ErrURLNotFound) {
-			response.SendError(ctx, http.StatusNotFound, "url not found")
-		} else {
-			log.Error("error occurred while getting url",
-				slog.String("alias", alias),
-				sl.Err(err),
-			)
-			response.SendError(ctx, http.StatusInternalServerError, "can't found url")
-		}
+		log.Error("error occurred while getting url",
+			slog.String("alias", alias),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't found url")
 		return
 	}
 

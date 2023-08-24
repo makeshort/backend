@@ -58,7 +58,6 @@ func (h *Handler) Register(ctx *gin.Context) {
 		response.SendError(ctx, http.StatusConflict, "user with this email or username already exists")
 		return
 	}
-
 	if err != nil {
 		log.Error("error occurred while saving user",
 			slog.String("username", body.Username),
@@ -167,12 +166,12 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, "", -1, h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
 	err = h.service.Storage.DeleteRefreshSession(ctx, refreshToken)
+	if errors.Is(err, storage.ErrRefreshSessionNotFound) {
+		log.Debug("refresh session not found")
+		response.SendError(ctx, http.StatusNotFound, "refresh session not found")
+		return
+	}
 	if err != nil {
-		if errors.Is(err, storage.ErrRefreshSessionNotFound) {
-			log.Debug("refresh session not found")
-			response.SendError(ctx, http.StatusNotFound, "refresh session not found")
-			return
-		}
 		response.SendError(ctx, http.StatusInternalServerError, "can't delete refresh session")
 		log.Error("error occurred while deleting refresh session",
 			sl.Err(err),
