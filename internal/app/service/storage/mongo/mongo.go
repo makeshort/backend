@@ -1,8 +1,8 @@
 package mongo
 
 import (
+	"backend/internal/app/service/storage"
 	"backend/internal/config"
-	"backend/internal/storage"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

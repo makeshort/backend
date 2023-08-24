@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"backend/internal/http-server/request"
-	"backend/internal/http-server/response"
+	"backend/internal/app/middleware"
+	"backend/internal/app/request"
+	"backend/internal/app/response"
+	"backend/internal/app/service/storage"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/lib/random"
-	"backend/internal/storage"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,6 +14,8 @@ import (
 	"net/http"
 	neturl "net/url"
 )
+
+const AliasLength = 6
 
 // CreateURL     Creates a URL in database, assigned to user
 // @Summary      Create URL
@@ -49,7 +52,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		alias = random.Generate(AliasLength)
 	}
 
-	id := ctx.GetString(ContextUserID)
+	id := ctx.GetString(middleware.ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err), slog.String("id", id))
@@ -57,7 +60,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		return
 	}
 
-	_, err = h.storage.CreateURL(ctx, parsedUrl, alias, userID)
+	_, err = h.service.Storage.CreateURL(ctx, parsedUrl, alias, userID)
 	if errors.Is(err, storage.ErrAliasAlreadyExists) {
 		h.log.Info("alias already exists", slog.String("alias", alias))
 		response.SendError(ctx, http.StatusConflict, "alias already exists")
@@ -93,7 +96,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 func (h *Handler) DeleteURL(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
-	id := ctx.GetString(ContextUserID)
+	id := ctx.GetString(middleware.ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
@@ -101,7 +104,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 		return
 	}
 
-	url, err := h.storage.GetUrlByAlias(ctx, alias)
+	url, err := h.service.Storage.GetUrlByAlias(ctx, alias)
 	if err != nil {
 		if errors.Is(err, storage.ErrURLNotFound) {
 			h.log.Info("url doesn't exists", slog.String("alias", alias))
@@ -117,7 +120,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 		return
 	}
 
-	err = h.storage.DeleteURL(ctx, alias)
+	err = h.service.Storage.DeleteURL(ctx, alias)
 	if err != nil {
 		if errors.Is(err, storage.ErrURLNotFound) {
 			h.log.Info("no url to delete")
@@ -136,7 +139,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 func (h *Handler) Redirect(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
-	url, err := h.storage.GetUrlByAlias(ctx, alias)
+	url, err := h.service.Storage.GetUrlByAlias(ctx, alias)
 	if err != nil {
 		if errors.Is(err, storage.ErrURLNotFound) {
 			h.log.Info("url not found", slog.String("alias", alias))
@@ -148,7 +151,7 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 	}
 
 	ctx.Redirect(http.StatusPermanentRedirect, url.Link)
-	err = h.storage.IncrementRedirectsCounter(ctx, alias)
+	err = h.service.Storage.IncrementRedirectsCounter(ctx, alias)
 	if err != nil {
 		h.log.Error("error while incrementing requests counter", slog.String("alias", alias))
 	}
