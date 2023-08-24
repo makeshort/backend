@@ -16,7 +16,7 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
-COPY --from=0 /makeshort-backend/.bin/ .
-COPY --from=0 /makeshort-backend/config/ .
+COPY --from=0 /makeshort-backend/.bin/ ./.bin
+COPY --from=0 /makeshort-backend/config/ ./config
 
 CMD ["./makeshort-backend"]
