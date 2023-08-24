@@ -18,6 +18,5 @@ WORKDIR /root/
 
 COPY --from=0 /makeshort-backend/.bin/ .
 COPY --from=0 /makeshort-backend/config/ .
-COPY --from=0 /makeshort-backend/.env .
 
 CMD ["./makeshort-backend"]
