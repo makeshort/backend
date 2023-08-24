@@ -1,10 +1,12 @@
 package handler
 
 import (
-	"backend/internal/http-server/response"
+	"backend/internal/app/middleware"
+	"backend/internal/app/response"
+	"backend/internal/app/service/storage"
 	"backend/internal/lib/logger/sl"
-	"backend/internal/storage"
 	"errors"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/exp/slog"
@@ -23,30 +25,41 @@ import (
 // @Failure      500  {object}    response.Error
 // @Router       /user/me         [delete]
 func (h *Handler) DeleteMe(ctx *gin.Context) {
-	hexUserID := ctx.GetString(ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(hexUserID)
+	log := h.log.With(
+		slog.String("op", "handler.DeleteMe"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
 
+	hexUserID := ctx.GetString(middleware.ContextUserID)
+	userID, err := primitive.ObjectIDFromHex(hexUserID)
 	if err != nil {
-		h.log.Error("can't parse user ID form hex", slog.String("id", hexUserID), sl.Err(err))
+		log.Error("error occurred while parsing user id from hex to ObjectID",
+			slog.String("id", hexUserID),
+			sl.Err(err),
+		)
 		response.SendError(ctx, http.StatusUnauthorized, "can't parse auth token")
 		return
 	}
 
-	err = h.storage.DeleteUser(ctx, userID)
+	err = h.service.Storage.DeleteUser(ctx, userID)
 	if errors.Is(err, storage.ErrUserNotFound) {
-		h.log.Info("user not found")
-		response.SendError(ctx, http.StatusInternalServerError, "user not found")
+		log.Info("user not found")
+		response.SendError(ctx, http.StatusNotFound, "user not found")
 		return
 	}
-
 	if err != nil {
-		h.log.Error("error while deleting user", sl.Err(err), slog.String("id", hexUserID))
+		log.Error("error occurred while deleting user",
+			slog.String("id", hexUserID),
+			sl.Err(err),
+		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't delete user")
 		return
 	}
 
 	ctx.Status(http.StatusOK)
-	h.log.Info("user created", slog.String("id", hexUserID))
+	log.Info("user created",
+		slog.String("id", hexUserID),
+	)
 }
 
 // GetMyURLs     Gets all url documents assigned to given UserID.
@@ -60,17 +73,28 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 // @Failure      500  {object}        response.Error
 // @Router       /user/me/urls        [get]
 func (h *Handler) GetMyURLs(ctx *gin.Context) {
-	hexUserID := ctx.GetString(ContextUserID)
+	log := h.log.With(
+		slog.String("op", "handler.GetMyURLs"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
+	hexUserID := ctx.GetString(middleware.ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
 	if err != nil {
-		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
-		response.InvalidAuthToken(ctx)
+		log.Error("error occurred while parsing user id from hex to ObjectID",
+			slog.String("id", hexUserID),
+			sl.Err(err),
+		)
+		response.SendAuthFailedError(ctx)
 		return
 	}
 
-	urlDocs, err := h.storage.GetUserURLs(ctx, userID)
+	urlDocs, err := h.service.Storage.GetUserURLs(ctx, userID)
 	if err != nil {
-		h.log.Error("can't get urls", slog.String("id", hexUserID), sl.Err(err))
+		log.Error("error occurred while getting user urls",
+			slog.String("id", hexUserID),
+			sl.Err(err),
+		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't get urls")
 		return
 	}

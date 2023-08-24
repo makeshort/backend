@@ -30,14 +30,14 @@ type TokenPair struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// InvalidRequestBody sends an error response with 400 Bad Request status code.
-func InvalidRequestBody(ctx *gin.Context) {
+// SendInvalidRequestBodyError sends an error response with 400 Bad Request status code.
+func SendInvalidRequestBodyError(ctx *gin.Context) {
 	SendError(ctx, http.StatusBadRequest, "invalid request body")
 }
 
-// InvalidAuthToken sends an error response with 401 Unauthorized status code.
-func InvalidAuthToken(ctx *gin.Context) {
-	SendError(ctx, http.StatusUnauthorized, "invalid auth token")
+// SendAuthFailedError sends an error response with 401 Unauthorized status code.
+func SendAuthFailedError(ctx *gin.Context) {
+	SendError(ctx, http.StatusUnauthorized, "auth failed")
 }
 
 // SendError sends an error response with message field.
