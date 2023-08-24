@@ -2,18 +2,14 @@ package token
 
 import (
 	"backend/internal/config"
-	"backend/internal/storage"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
-	"golang.org/x/exp/slog"
 	"time"
 )
 
-type Service struct {
-	log          *slog.Logger
-	storage      storage.Storage
-	config       *config.Config
+type Manager struct {
+	config       config.Token
 	accessSecret []byte
 }
 
@@ -27,17 +23,14 @@ type Pair struct {
 	RefreshToken string
 }
 
-func New(log *slog.Logger, st storage.Storage, config *config.Config) *Service {
-	return &Service{
-		log:          log,
-		storage:      st,
-		config:       config,
-		accessSecret: []byte(config.Token.Access.Secret),
+func New(config config.Token) *Manager {
+	return &Manager{
+		accessSecret: []byte(config.Access.Secret),
 	}
 }
 
-func (s *Service) GenerateTokenPair(userID string) (*Pair, error) {
-	accessToken, err := s.generateJWT(userID, s.config.Token.Access.TTL, s.accessSecret)
+func (s *Manager) GenerateTokenPair(userID string) (*Pair, error) {
+	accessToken, err := s.generateJWT(userID, s.config.Access.TTL, s.accessSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -47,11 +40,11 @@ func (s *Service) GenerateTokenPair(userID string) (*Pair, error) {
 	return &Pair{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
-func (s *Service) ParseJWT(rawToken string) (*Claims, error) {
+func (s *Manager) ParseJWT(rawToken string) (*Claims, error) {
 	return s.parseToken(rawToken, s.accessSecret)
 }
 
-func (s *Service) parseToken(rawToken string, signingKey []byte) (*Claims, error) {
+func (s *Manager) parseToken(rawToken string, signingKey []byte) (*Claims, error) {
 	parsedToken, err := jwt.ParseWithClaims(rawToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -71,7 +64,7 @@ func (s *Service) parseToken(rawToken string, signingKey []byte) (*Claims, error
 	return claims, nil
 }
 
-func (s *Service) generateJWT(userID string, timeToLive time.Duration, signingKey []byte) (string, error) {
+func (s *Manager) generateJWT(userID string, timeToLive time.Duration, signingKey []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(timeToLive).Unix(),
@@ -82,6 +75,6 @@ func (s *Service) generateJWT(userID string, timeToLive time.Duration, signingKe
 	return token.SignedString(signingKey)
 }
 
-func (s *Service) generateRefreshToken() string {
+func (s *Manager) generateRefreshToken() string {
 	return uuid.NewString()
 }
