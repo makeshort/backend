@@ -63,7 +63,7 @@ func (a *App) Run() {
 		}
 	}()
 
-	a.log.Info("server started")
+	a.log.Info("server started", slog.String("address", server.Addr))
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
