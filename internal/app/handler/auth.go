@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"backend/internal/http-server/request"
-	"backend/internal/http-server/response"
+	"backend/internal/app/request"
+	"backend/internal/app/response"
+	"backend/internal/app/service/storage"
 	"backend/internal/lib/logger/sl"
-	"backend/internal/storage"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
@@ -39,9 +39,9 @@ func (h *Handler) Register(ctx *gin.Context) {
 		return
 	}
 
-	passwordHash := h.hasher.Create(body.Password)
+	passwordHash := h.service.Hasher.Create(body.Password)
 
-	userID, err := h.storage.CreateUser(ctx, body.Email, body.Username, passwordHash)
+	userID, err := h.service.Storage.CreateUser(ctx, body.Email, body.Username, passwordHash)
 	if errors.Is(err, storage.ErrUserAlreadyExists) {
 		h.log.Info("user already exists")
 		response.SendError(ctx, http.StatusConflict, "user with this email or username already exists")
@@ -78,19 +78,19 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := h.storage.GetUserByCredentials(ctx, body.Email, h.hasher.Create(body.Password))
+	user, err := h.service.Storage.GetUserByCredentials(ctx, body.Email, h.service.Hasher.Create(body.Password))
 	if err != nil {
 		response.SendError(ctx, http.StatusNotFound, "user not found")
 		return
 	}
 
-	tokenPair, err := h.tokenService.GenerateTokenPair(user.ID.Hex())
+	tokenPair, err := h.service.TokenManager.GenerateTokenPair(user.ID.Hex())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create token")
 		return
 	}
 
-	_, err = h.storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
+	_, err = h.service.Storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
 		return
@@ -121,7 +121,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	}
 	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, "", -1, h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
-	err = h.storage.DeleteRefreshSession(ctx, refreshToken)
+	err = h.service.Storage.DeleteRefreshSession(ctx, refreshToken)
 	if err != nil {
 		if errors.Is(err, storage.ErrRefreshSessionNotFound) {
 			response.SendError(ctx, http.StatusNotFound, "refresh session not found")
@@ -150,24 +150,24 @@ func (h *Handler) RefreshTokens(ctx *gin.Context) {
 		return
 	}
 
-	isRefreshTokenValid, userID := h.storage.IsRefreshTokenValid(ctx, refreshToken)
+	isRefreshTokenValid, userID := h.service.Storage.IsRefreshTokenValid(ctx, refreshToken)
 	if !isRefreshTokenValid {
 		response.SendError(ctx, http.StatusForbidden, "invalid refresh token")
 		return
 	}
 
-	err = h.storage.DeleteRefreshSession(ctx, refreshToken)
+	err = h.service.Storage.DeleteRefreshSession(ctx, refreshToken)
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't delete refresh session")
 	}
 
-	tokenPair, err := h.tokenService.GenerateTokenPair(userID.Hex())
+	tokenPair, err := h.service.TokenManager.GenerateTokenPair(userID.Hex())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create token")
 		return
 	}
 
-	_, err = h.storage.CreateRefreshSession(ctx, userID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
+	_, err = h.service.Storage.CreateRefreshSession(ctx, userID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
 	if err != nil {
 		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
 		return

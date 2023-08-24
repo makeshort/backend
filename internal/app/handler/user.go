@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"backend/internal/http-server/response"
+	"backend/internal/app/middleware"
+	"backend/internal/app/response"
+	"backend/internal/app/service/storage"
 	"backend/internal/lib/logger/sl"
-	"backend/internal/storage"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,7 +24,7 @@ import (
 // @Failure      500  {object}    response.Error
 // @Router       /user/me         [delete]
 func (h *Handler) DeleteMe(ctx *gin.Context) {
-	hexUserID := ctx.GetString(ContextUserID)
+	hexUserID := ctx.GetString(middleware.ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
 
 	if err != nil {
@@ -32,7 +33,7 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 		return
 	}
 
-	err = h.storage.DeleteUser(ctx, userID)
+	err = h.service.Storage.DeleteUser(ctx, userID)
 	if errors.Is(err, storage.ErrUserNotFound) {
 		h.log.Info("user not found")
 		response.SendError(ctx, http.StatusInternalServerError, "user not found")
@@ -60,7 +61,7 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 // @Failure      500  {object}        response.Error
 // @Router       /user/me/urls        [get]
 func (h *Handler) GetMyURLs(ctx *gin.Context) {
-	hexUserID := ctx.GetString(ContextUserID)
+	hexUserID := ctx.GetString(middleware.ContextUserID)
 	userID, err := primitive.ObjectIDFromHex(hexUserID)
 	if err != nil {
 		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
@@ -68,7 +69,7 @@ func (h *Handler) GetMyURLs(ctx *gin.Context) {
 		return
 	}
 
-	urlDocs, err := h.storage.GetUserURLs(ctx, userID)
+	urlDocs, err := h.service.Storage.GetUserURLs(ctx, userID)
 	if err != nil {
 		h.log.Error("can't get urls", slog.String("id", hexUserID), sl.Err(err))
 		response.SendError(ctx, http.StatusInternalServerError, "can't get urls")
