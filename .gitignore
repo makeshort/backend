@@ -1,5 +1,6 @@
 # Ignore IDE files
 .idea/
+.bin/
 
 # Ignore config files
 .env
