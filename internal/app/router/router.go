@@ -60,7 +60,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 		url := api.Group("/url", r.middleware.UserIdentity)
 		{
 			url.POST("/", r.handler.CreateURL)
-			// url.PATCH("/:alias", h.UpdateURL)
+			// url.PATCH("/:id", h.UpdateURL)
 			url.DELETE("/:id", r.handler.DeleteURL)
 		}
 
