@@ -44,12 +44,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | email    | string | Yes      |
 | password | string | Yes      |
 
-**Success response:** `200 OK`
-
-| Field         | Type   |
-|:--------------|:-------|
-| access_token  | string |
-| refresh_token | string |
+**Success response:** `200 OK` and [token pair](https://github.com/makeshort/backend/blob/develop/README.md#token-pair) object.
 
 **Possible errors:**
 
@@ -81,13 +76,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | username | string | Yes      |
 | password | string | Yes      | 
 
-**Success response:** `201 Created`
-
-| Field    | Type   |
-|:---------|:-------|
-| email    | string |
-| username | string |
-
+**Success response:** `201 Created` and [user](https://github.com/makeshort/backend/blob/develop/README.md#user) object.
 
 **Possible errors:**
 
@@ -106,7 +95,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 |:---------|:-------|:---------|
 | token    | string | Yes      |
 
-**Success response:** `200 OK`
+**Success response:** `200 OK` and [token pair](https://github.com/makeshort/backend/blob/develop/README.md#token-pair) object.
 
 | Field         | Type   |
 |:--------------|:-------|
@@ -133,15 +122,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 #### **GET** `/api/user/me/urls` - get my URLs
 
-**Success response:** `200 OK`
-
-Array of URL entities:
-
-| Field     | Type   |
-|:----------|:-------|
-| url       | string |
-| alias     | string |
-| redirects | int    |
+**Success response:** `200 OK` and array of [url](https://github.com/makeshort/backend/blob/develop/README.md#url) objects.
 
 **Possible errors:**
 
@@ -160,12 +141,7 @@ Array of URL entities:
 | url   | string | Yes      |
 | alias | string | No       |
 
-**Success response:** `201 Created`
-
-| Field | Type   |
-|:------|:-------|
-| url   | string |
-| alias | string |
+**Success response:** `201 Created` and [url](https://github.com/makeshort/backend/blob/develop/README.md#url) object.
 
 **Possible errors:**
 
