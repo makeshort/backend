@@ -90,6 +90,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, response.UrlCreated{
+		ID:    urlID.Hex(),
 		Url:   body.Url,
 		Alias: alias,
 	})

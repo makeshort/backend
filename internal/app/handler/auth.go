@@ -74,7 +74,11 @@ func (h *Handler) Register(ctx *gin.Context) {
 		slog.String("email", body.Email),
 	)
 
-	ctx.JSON(http.StatusCreated, response.User{Email: body.Email, Username: body.Username})
+	ctx.JSON(http.StatusCreated, response.User{
+		ID:       userID.Hex(),
+		Email:    body.Email,
+		Username: body.Username,
+	})
 }
 
 // Login          Creates a session.

@@ -10,17 +10,20 @@ type Error struct {
 }
 
 type User struct {
+	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Username string `json:"username"`
 }
 
 type URL struct {
+	ID        string `json:"id"`
 	Url       string `json:"url"`
 	Alias     string `json:"alias"`
 	Redirects int    `json:"redirects"`
 }
 
 type UrlCreated struct {
+	ID    string `json:"id"`
 	Url   string `json:"url"`
 	Alias string `json:"alias"`
 }
