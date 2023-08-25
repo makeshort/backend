@@ -65,7 +65,7 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	})
 }
 
-// DeleteMe      Delete me from database.
+// DeleteUser    Delete me from database.
 // @Summary      Delete me
 // @Description  Delete me from database
 // @Security     AccessToken
@@ -76,9 +76,9 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 // @Failure      401  {object}    response.Error
 // @Failure      500  {object}    response.Error
 // @Router       /user/{id}       [delete]
-func (h *Handler) DeleteMe(ctx *gin.Context) {
+func (h *Handler) DeleteUser(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.DeleteMe"),
+		slog.String("op", "handler.DeleteUser"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
@@ -114,7 +114,7 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 	)
 }
 
-// GetMyURLs     Gets all url documents assigned to given UserID.
+// GetUserUrls   Gets all url documents assigned to given UserID.
 // @Summary      Get URLs
 // @Security     AccessToken
 // @Description  Get all URLs created by user
@@ -125,9 +125,9 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 // @Failure      401  {object}        response.Error
 // @Failure      500  {object}        response.Error
 // @Router       /user/{id}/urls      [get]
-func (h *Handler) GetMyURLs(ctx *gin.Context) {
+func (h *Handler) GetUserUrls(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.GetMyURLs"),
+		slog.String("op", "handler.GetUserUrls"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
