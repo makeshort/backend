@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var headerXRequestID = "X-Request-ID"
+const headerXRequestID = "X-Request-ID"
 
 // New initializes the RequestID middleware.
 func New(ctx *gin.Context) {
