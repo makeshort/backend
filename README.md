@@ -24,10 +24,16 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | url       | string | The original url       |
 | redirects | int    | The redirects counter  |
 
+#### Token pair:
+
+| Field         | Type   | Description       |
+|:--------------|:-------|:------------------|
+| access_token  | string | The access token  |
+| refresh_token | string | The refresh token |
+
 
 
 ## Endpoints:
-
 
 #### **POST** `/api/auth/session` - login (create a session)
 
