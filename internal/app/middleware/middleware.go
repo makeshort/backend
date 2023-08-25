@@ -4,7 +4,7 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
 	"backend/internal/config"
-	"github.com/gin-contrib/requestid"
+	"backend/pkg/requestid"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"strings"

@@ -5,8 +5,8 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service/storage"
 	"backend/internal/lib/logger/sl"
+	"backend/pkg/requestid"
 	"errors"
-	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"net/http"
@@ -72,7 +72,6 @@ func (h *Handler) Register(ctx *gin.Context) {
 		slog.String("id", userID.Hex()),
 		slog.String("username", body.Username),
 		slog.String("email", body.Email),
-		slog.String("password_hash", passwordHash),
 	)
 
 	ctx.JSON(http.StatusCreated, response.User{Email: body.Email, Username: body.Username})
@@ -109,7 +108,6 @@ func (h *Handler) Login(ctx *gin.Context) {
 	if err != nil {
 		log.Debug("user not found in database",
 			slog.String("email", body.Email),
-			slog.String("password_hash", passwordHash),
 		)
 		response.SendError(ctx, http.StatusBadRequest, "user not found")
 		return
