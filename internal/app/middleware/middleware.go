@@ -138,6 +138,10 @@ func (m *Middleware) CheckMe(ctx *gin.Context) {
 
 // RequestLog logs every request with parameters: method, path, client_ip, remote_addr, user_agent, status and duration.
 func (m *Middleware) RequestLog(ctx *gin.Context) {
+	if strings.HasPrefix(ctx.Request.URL.Path, "/api/docs/") { // ignore logging swagger documentation
+		return
+	}
+
 	startTime := time.Now()
 
 	m.log.Info("request handled",
