@@ -1,12 +1,32 @@
 # Rest API Server for URL Shortener App
 
-### Authorization:
+## Authorization:
 
 Authorization is performed by the `AccessToken` in `Authorization` header. Access token issues for 30 minutes, and refreshs by `RefreshToken` in cookies. RefreshToken issues for 30 days. On logout refresh token adds to blacklist, and access token will never updated with this refresh token.
 
----
 
-### Endpoints:
+## Data structures:
+
+#### User:
+
+| Field    | Type   | Description          |
+|:---------|:-------|:---------------------|
+| id       | string | The ID of user       |
+| username | string | The username of user |
+| email    | string | The email of user    |
+
+#### URL:
+
+| Field     | Type   | Description            |
+|:----------|:-------|:-----------------------|
+| id        | string | The ID of url          |
+| alias     | string | The short alias of url |
+| url       | string | The original url       |
+| redirects | int    | The redirects counter  |
+
+
+
+## Endpoints:
 
 
 #### **POST** `/api/auth/session` - login (create a session)
