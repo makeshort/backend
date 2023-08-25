@@ -123,7 +123,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-#### **DELETE** `/api/user/me` - delete me
+#### **DELETE** `/api/user/{id}` - delete user
 
 **Success response:** `200 OK`
 
@@ -136,7 +136,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-#### **GET** `/api/user/me/urls` - get my URLs
+#### **GET** `/api/user/{id}/urls` - get my URLs
 
 **Success response:** `200 OK` and array of [url](#url) objects.
 

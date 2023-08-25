@@ -67,12 +67,10 @@ func (r *Router) InitRoutes() *gin.Engine {
 		user := api.Group("/user")
 		{
 			user.GET("/:id", r.handler.GetUser)
-			me := user.Group("/me", r.middleware.UserIdentity)
-			{
-				// me.PATCH("/", h.UpdateMe)
-				me.DELETE("/", r.handler.DeleteMe)
-				me.GET("/urls", r.handler.GetMyURLs)
-			}
+
+			// user.PATCH("/:id", r.middleware.UserIdentity, h.UpdateMe)
+			user.DELETE("/:id", r.middleware.UserIdentity, r.handler.DeleteMe)
+			user.GET("/:id/urls", r.middleware.UserIdentity, r.handler.GetMyURLs)
 		}
 	}
 
