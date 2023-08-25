@@ -254,6 +254,34 @@ paths:
       tags:
       - url
   /user/{id}:
+    delete:
+      description: Delete me from database
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - AccessToken: []
+      summary: Delete me
+      tags:
+      - user
     get:
       description: Get user's information
       parameters:
@@ -280,32 +308,15 @@ paths:
       summary: Get user
       tags:
       - user
-  /user/me:
-    delete:
-      description: Delete me from database
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: integer
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Error'
-      security:
-      - AccessToken: []
-      summary: Delete me
-      tags:
-      - user
-  /user/me/urls:
+  /user/{id}/urls:
     get:
       description: Get all URLs created by user
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:

@@ -70,11 +70,12 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 // @Description  Delete me from database
 // @Security     AccessToken
 // @Tags         user
+// @Param        id path string true "id"
 // @Produce      json
 // @Success      200  {integer}   integer 1
 // @Failure      401  {object}    response.Error
 // @Failure      500  {object}    response.Error
-// @Router       /user/me         [delete]
+// @Router       /user/{id}       [delete]
 func (h *Handler) DeleteMe(ctx *gin.Context) {
 	log := h.log.With(
 		slog.String("op", "handler.DeleteMe"),
@@ -118,11 +119,12 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 // @Security     AccessToken
 // @Description  Get all URLs created by user
 // @Tags         user
+// @Param        id path string true "id"
 // @Produce      json
 // @Success      200  {array}         response.URL
 // @Failure      401  {object}        response.Error
 // @Failure      500  {object}        response.Error
-// @Router       /user/me/urls        [get]
+// @Router       /user/{id}/urls      [get]
 func (h *Handler) GetMyURLs(ctx *gin.Context) {
 	log := h.log.With(
 		slog.String("op", "handler.GetMyURLs"),
