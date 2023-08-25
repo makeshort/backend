@@ -169,6 +169,19 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
+#### **PATCH** `/api/url/{alias}` - update url
+
+**Request body:**
+
+| Field | Type   | Required |
+|:------|:-------|:---------|
+| url   | string | Yes      |
+| alias | string | No       |
+
+**Success response:** `200 OK` and [url](#url) object with not-updated fields.
+
+---
+
 #### **DELETE** `/api/url/{alias}` - delete URL
 
 **Success response:** `200 OK`
