@@ -109,7 +109,21 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 |:-----|:----------------------|
 | 403  | Invalid refresh token |
 
-#### **DELETE** `/api/user/me` - delete me
+---
+
+#### **GET** `/api/user/{id}` - get user
+
+**Success response:** `200 OK` and [user](#user) object.
+
+**Possible errors:**
+
+| Code | Description    |
+|:-----|:---------------|
+| 404  | User not found |
+
+---
+
+#### **DELETE** `/api/user/{id}` - delete user
 
 **Success response:** `200 OK`
 
@@ -120,7 +134,9 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | 400  | Bad request. User not found in database |
 | 401  | Unauthorized                            |
 
-#### **GET** `/api/user/me/urls` - get my URLs
+---
+
+#### **GET** `/api/user/{id}/urls` - get my URLs
 
 **Success response:** `200 OK` and array of [url](#url) objects.
 
@@ -153,7 +169,20 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 ---
 
-#### **DELETE** `/api/url/:alias` - delete URL
+#### **PATCH** `/api/url/{alias}` - update url
+
+**Request body:**
+
+| Field | Type   | Required |
+|:------|:-------|:---------|
+| url   | string | Yes      |
+| alias | string | No       |
+
+**Success response:** `200 OK` and [url](#url) object with not-updated fields.
+
+---
+
+#### **DELETE** `/api/url/{alias}` - delete URL
 
 **Success response:** `200 OK`
 

@@ -3,11 +3,15 @@ package middleware
 import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
+	"backend/internal/app/service/storage"
 	"backend/internal/config"
 	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/exp/slog"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -70,8 +74,74 @@ func (m *Middleware) UserIdentity(ctx *gin.Context) {
 	ctx.Next()
 }
 
+// CheckOwner middleware checks if user owning URL with ID from parameter.
+func (m *Middleware) CheckOwner(ctx *gin.Context) {
+	log := m.log.With(
+		slog.String("op", "middleware.CheckOwner"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
+	hexUrlID := ctx.Param("id")
+	urlID, err := primitive.ObjectIDFromHex(hexUrlID)
+	if err != nil {
+		log.Error("error occurred while parsing url id from hex to ObjectID",
+			slog.String("id", hexUrlID),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "url id is invalid")
+		return
+	}
+
+	hexUserID := ctx.GetString(ContextUserID)
+	userID, err := primitive.ObjectIDFromHex(hexUserID)
+	if err != nil {
+		log.Error("error occurred while parsing user id from hex to ObjectID",
+			slog.String("id", hexUserID),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusNotFound, "user id is invalid")
+		return
+	}
+
+	url, err := m.service.Storage.GetUrlByID(ctx, urlID)
+	if errors.Is(err, storage.ErrURLNotFound) {
+		log.Debug("url not found",
+			slog.String("id", hexUrlID),
+		)
+		response.SendError(ctx, http.StatusNotFound, "url with this id not found")
+		return
+	}
+	if err != nil {
+		log.Error("error occurred while getting url",
+			slog.String("id", hexUrlID),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't get url")
+		return
+	}
+
+	if url.UserID != userID {
+		response.SendError(ctx, http.StatusForbidden, "not your url")
+		return
+	}
+	ctx.Next()
+}
+
+// CheckMe middleware checks if UserID from context (authenticated user id) completely equals to ID from parameter.
+func (m *Middleware) CheckMe(ctx *gin.Context) {
+	if ctx.GetString(ContextUserID) != ctx.Param("id") {
+		ctx.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+	ctx.Next()
+}
+
 // RequestLog logs every request with parameters: method, path, client_ip, remote_addr, user_agent, status and duration.
 func (m *Middleware) RequestLog(ctx *gin.Context) {
+	if strings.HasPrefix(ctx.Request.URL.Path, "/api/docs/") { // ignore logging swagger documentation
+		return
+	}
+
 	startTime := time.Now()
 
 	m.log.Info("request handled",

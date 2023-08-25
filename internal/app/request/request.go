@@ -15,3 +15,8 @@ type URL struct {
 	Url   string `json:"url"`
 	Alias string `json:"alias,omitempty"`
 }
+
+type UrlUpdate struct {
+	Url   string `json:"url,omitempty"`
+	Alias string `json:"alias,omitempty"`
+}

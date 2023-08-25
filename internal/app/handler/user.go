@@ -14,19 +14,71 @@ import (
 	"net/mail"
 )
 
-// DeleteMe      Delete me from database.
+// GetUser       Get user's information.
+// @Summary      Get user
+// @Description  Get user's information
+// @Tags         user
+// @Param        id path string true "id"
+// @Produce      json
+// @Success      200  {object}        response.User
+// @Failure      404  {object}        response.Error
+// @Failure      500  {object}        response.Error
+// @Router       /user/{id}           [get]
+func (h *Handler) GetUser(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.GetUser"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
+	id := ctx.Param("id")
+	userID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Error("error occurred while parsing user id from hex to ObjectID",
+			slog.String("id", id),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusNotFound, "id is invalid")
+		return
+	}
+
+	user, err := h.service.Storage.GetUserByID(ctx, userID)
+	if errors.Is(err, storage.ErrUserNotFound) {
+		log.Debug("user not found",
+			slog.String("id", id),
+		)
+		response.SendError(ctx, http.StatusNotFound, "user not found")
+		return
+	}
+	if err != nil {
+		log.Error("user not found",
+			slog.String("id", id),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't get user")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.User{
+		ID:       user.ID.Hex(),
+		Email:    user.Email,
+		Username: user.Username,
+	})
+}
+
+// DeleteUser    Delete me from database.
 // @Summary      Delete me
 // @Description  Delete me from database
 // @Security     AccessToken
 // @Tags         user
+// @Param        id path string true "id"
 // @Produce      json
 // @Success      200  {integer}   integer 1
 // @Failure      401  {object}    response.Error
 // @Failure      500  {object}    response.Error
-// @Router       /user/me         [delete]
-func (h *Handler) DeleteMe(ctx *gin.Context) {
+// @Router       /user/{id}       [delete]
+func (h *Handler) DeleteUser(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.DeleteMe"),
+		slog.String("op", "handler.DeleteUser"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
@@ -62,19 +114,20 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 	)
 }
 
-// GetMyURLs     Gets all url documents assigned to given UserID.
+// GetUserUrls   Gets all url documents assigned to given UserID.
 // @Summary      Get URLs
 // @Security     AccessToken
 // @Description  Get all URLs created by user
 // @Tags         user
+// @Param        id path string true "id"
 // @Produce      json
 // @Success      200  {array}         response.URL
 // @Failure      401  {object}        response.Error
 // @Failure      500  {object}        response.Error
-// @Router       /user/me/urls        [get]
-func (h *Handler) GetMyURLs(ctx *gin.Context) {
+// @Router       /user/{id}/urls      [get]
+func (h *Handler) GetUserUrls(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.GetMyURLs"),
+		slog.String("op", "handler.GetUserUrls"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 

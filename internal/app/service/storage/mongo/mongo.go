@@ -146,6 +146,24 @@ func (s *Storage) IncrementRedirectsCounter(ctx context.Context, alias string) e
 	return err
 }
 
+func (s *Storage) UpdateUrl(ctx context.Context, id primitive.ObjectID, alias string, url string) error {
+	urlDb, err := s.GetUrlByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if alias == "" {
+		alias = urlDb.Alias
+	}
+	if url == "" {
+		url = urlDb.Link
+	}
+	_, err = s.urls.UpdateOne(ctx,
+		bson.D{{"_id", id}},
+		bson.D{{"$set", bson.D{{"alias", alias}, {"link", url}}},
+			{"$set", bson.D{{"updated_at", primitive.NewDateTimeFromTime(time.Now())}}}})
+	return err
+}
+
 // DeleteURL deletes URL from database.
 func (s *Storage) DeleteURL(ctx context.Context, alias string) error {
 	res, err := s.urls.DeleteOne(ctx, bson.D{{"alias", alias}})
@@ -179,6 +197,17 @@ func (s *Storage) CreateUser(ctx context.Context, email string, username string,
 // If user does not found, function will return a storage.ErrUserNotFound error.
 func (s *Storage) GetUserByCredentials(ctx context.Context, email string, passwordHash string) (storage.User, error) {
 	doc := s.users.FindOne(ctx, bson.D{{"email", email}, {"password_hash", passwordHash}})
+
+	var user storage.User
+
+	if err := doc.Decode(&user); err != nil {
+		return storage.User{}, storage.ErrUserNotFound
+	} // TODO: ErrNoDocuments check
+	return user, nil
+}
+
+func (s *Storage) GetUserByID(ctx context.Context, id primitive.ObjectID) (storage.User, error) {
+	doc := s.users.FindOne(ctx, bson.D{{"_id", id}})
 
 	var user storage.User
 
