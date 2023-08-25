@@ -5,14 +5,14 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service/storage"
 	"backend/internal/lib/logger/sl"
+	"backend/pkg/requestid"
 	"errors"
-	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"net/http"
 )
 
-// Register      Creates a user in database
+// Register      Creates a user in database.
 // @Summary      User registration
 // @Description  Creates a user in database
 // @Tags         auth
@@ -72,13 +72,12 @@ func (h *Handler) Register(ctx *gin.Context) {
 		slog.String("id", userID.Hex()),
 		slog.String("username", body.Username),
 		slog.String("email", body.Email),
-		slog.String("password_hash", passwordHash),
 	)
 
 	ctx.JSON(http.StatusCreated, response.User{Email: body.Email, Username: body.Username})
 }
 
-// Login          Creates a session
+// Login          Creates a session.
 // @Summary       User login
 // @Description   Creates a session
 // @Tags          auth
@@ -109,7 +108,6 @@ func (h *Handler) Login(ctx *gin.Context) {
 	if err != nil {
 		log.Debug("user not found in database",
 			slog.String("email", body.Email),
-			slog.String("password_hash", passwordHash),
 		)
 		response.SendError(ctx, http.StatusBadRequest, "user not found")
 		return
@@ -140,7 +138,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 	})
 }
 
-// Logout        Delete session from database
+// Logout        Delete session from database.
 // @Summary      User logout
 // @Description  Delete session from database
 // @Tags         auth
@@ -182,7 +180,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-// RefreshTokens     Create a new token pair
+// RefreshTokens     Create a new token pair.
 // @Summary          Token refresh
 // @Description      Create a new token pair
 // @Tags             auth

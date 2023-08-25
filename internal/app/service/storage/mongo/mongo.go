@@ -25,7 +25,7 @@ type Storage struct {
 	refreshSessions *mongo.Collection
 }
 
-// New returns a new Storage instance
+// New returns a new Storage instance.
 func New(cfg *config.Config) *Storage {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -95,7 +95,7 @@ func New(cfg *config.Config) *Storage {
 	return &Storage{Client: client, config: cfg, urls: urls, users: users, refreshSessions: refreshSessions}
 }
 
-// CreateURL creates a URL document in database
+// CreateURL creates a URL document in database.
 func (s *Storage) CreateURL(ctx context.Context, link string, alias string, userID primitive.ObjectID) (primitive.ObjectID, error) {
 	doc, err := s.urls.InsertOne(ctx, storage.URL{
 		Link:      link,
@@ -115,8 +115,8 @@ func (s *Storage) CreateURL(ctx context.Context, link string, alias string, user
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
-// GetUrlByAlias returns a storage.URL object from database
-// If url does not found, function will return a storage.ErrURLNotFound error
+// GetUrlByAlias returns a storage.URL object from database.
+// If url does not found, function will return a storage.ErrURLNotFound error.
 func (s *Storage) GetUrlByAlias(ctx context.Context, alias string) (storage.URL, error) {
 	doc := s.urls.FindOne(ctx, bson.D{{"alias", alias}})
 	var url storage.URL
@@ -126,7 +126,7 @@ func (s *Storage) GetUrlByAlias(ctx context.Context, alias string) (storage.URL,
 	return url, nil
 }
 
-// IncrementRedirectsCounter increments redirects field of storage.URL document in database
+// IncrementRedirectsCounter increments redirects field of storage.URL document in database.
 func (s *Storage) IncrementRedirectsCounter(ctx context.Context, alias string) error {
 	_, err := s.urls.UpdateOne(ctx,
 		bson.D{{"alias", alias}},
@@ -138,7 +138,7 @@ func (s *Storage) IncrementRedirectsCounter(ctx context.Context, alias string) e
 	return nil
 }
 
-// DeleteURL deletes URL from database
+// DeleteURL deletes URL from database.
 func (s *Storage) DeleteURL(ctx context.Context, alias string) error {
 	res, err := s.urls.DeleteOne(ctx, bson.D{{"alias", alias}})
 	if res.DeletedCount == 0 {
@@ -147,7 +147,7 @@ func (s *Storage) DeleteURL(ctx context.Context, alias string) error {
 	return err
 }
 
-// CreateUser creates a storage.User document in database
+// CreateUser creates a storage.User document in database.
 func (s *Storage) CreateUser(ctx context.Context, email string, username string, passwordHash string) (primitive.ObjectID, error) {
 	doc, err := s.users.InsertOne(ctx, storage.User{
 		Email:        email,
@@ -167,8 +167,8 @@ func (s *Storage) CreateUser(ctx context.Context, email string, username string,
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
-// GetUserByCredentials returns a storage.User object from database
-// If user does not found, function will return a storage.ErrUserNotFound error
+// GetUserByCredentials returns a storage.User object from database.
+// If user does not found, function will return a storage.ErrUserNotFound error.
 func (s *Storage) GetUserByCredentials(ctx context.Context, email string, passwordHash string) (storage.User, error) {
 	doc := s.users.FindOne(ctx, bson.D{{"email", email}, {"password_hash", passwordHash}})
 
@@ -180,7 +180,7 @@ func (s *Storage) GetUserByCredentials(ctx context.Context, email string, passwo
 	return user, nil
 }
 
-// GetUserURLs get and return all storage.URL documents in database, with given owner
+// GetUserURLs get and return all storage.URL documents in database, with given owner.
 func (s *Storage) GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]storage.URL, error) {
 	cur, err := s.urls.Find(ctx, bson.D{{"user_id", userID}})
 	if err != nil {
@@ -200,7 +200,7 @@ func (s *Storage) GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([
 	return results, nil
 }
 
-// DeleteUser deletes a user from database. If user does not found, function will return a storage.ErrUserNotFound error
+// DeleteUser deletes a user from database. If user does not found, function will return a storage.ErrUserNotFound error.
 func (s *Storage) DeleteUser(ctx context.Context, userID primitive.ObjectID) error {
 	res, err := s.users.DeleteOne(ctx, bson.D{{"_id", userID}})
 	if res.DeletedCount == 0 {
@@ -209,7 +209,7 @@ func (s *Storage) DeleteUser(ctx context.Context, userID primitive.ObjectID) err
 	return err
 }
 
-// CreateRefreshSession creates a new refresh session with refresh token assigned to user
+// CreateRefreshSession creates a new refresh session with refresh token assigned to user.
 func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, ip string, userAgent string) (primitive.ObjectID, error) {
 	doc, err := s.refreshSessions.InsertOne(ctx, storage.RefreshSession{
 		UserID:       userID,
@@ -226,7 +226,7 @@ func (s *Storage) CreateRefreshSession(ctx context.Context, userID primitive.Obj
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
-// DeleteRefreshSession deletes a refresh session from database
+// DeleteRefreshSession deletes a refresh session from database.
 func (s *Storage) DeleteRefreshSession(ctx context.Context, refreshToken string) error {
 	res, err := s.refreshSessions.DeleteOne(ctx, bson.D{{"refresh_token", refreshToken}})
 	if err != nil {
@@ -238,7 +238,7 @@ func (s *Storage) DeleteRefreshSession(ctx context.Context, refreshToken string)
 	return nil
 }
 
-// IsRefreshTokenValid checks is the refresh token has an active refresh session
+// IsRefreshTokenValid checks is the refresh token has an active refresh session.
 func (s *Storage) IsRefreshTokenValid(ctx context.Context, refreshToken string) (isRefreshTokenValid bool, ownerID primitive.ObjectID) {
 	var session storage.RefreshSession
 	doc := s.refreshSessions.FindOne(ctx, bson.D{{"refresh_token", refreshToken}})

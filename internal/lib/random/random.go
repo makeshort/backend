@@ -7,7 +7,7 @@ import (
 
 const chars = "abcdefghijklmnopqrstuvwxuz0123456789"
 
-// Generate generates a random string given length. Great compatible for alias.
+// Generate generates a random string given length.
 func Generate(size int) string {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	chars := []rune(chars)
@@ -19,5 +19,3 @@ func Generate(size int) string {
 
 	return string(b)
 }
-
-// TODO: Change math/rand, mb hash ???

@@ -23,12 +23,14 @@ type Pair struct {
 	RefreshToken string
 }
 
+// New returns a new instance of Manager.
 func New(config config.Token) *Manager {
 	return &Manager{
 		accessSecret: []byte(config.Access.Secret),
 	}
 }
 
+// GenerateTokenPair generates a new token pair with Access Token and Refresh Token.
 func (s *Manager) GenerateTokenPair(userID string) (*Pair, error) {
 	accessToken, err := s.generateJWT(userID, s.config.Access.TTL, s.accessSecret)
 	if err != nil {
@@ -40,10 +42,12 @@ func (s *Manager) GenerateTokenPair(userID string) (*Pair, error) {
 	return &Pair{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
+// ParseJWT parses a JWT to Claims.
 func (s *Manager) ParseJWT(rawToken string) (*Claims, error) {
 	return s.parseToken(rawToken, s.accessSecret)
 }
 
+// parseToken parses JWT with signing key.
 func (s *Manager) parseToken(rawToken string, signingKey []byte) (*Claims, error) {
 	parsedToken, err := jwt.ParseWithClaims(rawToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -64,6 +68,7 @@ func (s *Manager) parseToken(rawToken string, signingKey []byte) (*Claims, error
 	return claims, nil
 }
 
+// generateJWT generates a new JWT.
 func (s *Manager) generateJWT(userID string, timeToLive time.Duration, signingKey []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		jwt.StandardClaims{
@@ -75,6 +80,7 @@ func (s *Manager) generateJWT(userID string, timeToLive time.Duration, signingKe
 	return token.SignedString(signingKey)
 }
 
+// generateRefreshToken generates a new Refresh Token.
 func (s *Manager) generateRefreshToken() string {
 	return uuid.NewString()
 }

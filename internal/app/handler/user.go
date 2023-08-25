@@ -5,8 +5,8 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service/storage"
 	"backend/internal/lib/logger/sl"
+	"backend/pkg/requestid"
 	"errors"
-	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/exp/slog"
@@ -14,7 +14,7 @@ import (
 	"net/mail"
 )
 
-// DeleteMe      Delete me from database
+// DeleteMe      Delete me from database.
 // @Summary      Delete me
 // @Description  Delete me from database
 // @Security     AccessToken
@@ -108,6 +108,7 @@ func (h *Handler) GetMyURLs(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, urls)
 }
 
+// checkEmailValidity checks is email valid.
 func checkEmailValidity(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil

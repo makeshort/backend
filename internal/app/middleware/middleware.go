@@ -4,7 +4,7 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
 	"backend/internal/config"
-	"github.com/gin-contrib/requestid"
+	"backend/pkg/requestid"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 	"strings"
@@ -22,6 +22,7 @@ type Middleware struct {
 	service *service.Service
 }
 
+// New returns a new instance of Middleware.
 func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Middleware {
 	return &Middleware{
 		config:  cfg,
@@ -30,7 +31,7 @@ func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Middle
 	}
 }
 
-// UserIdentity parse access token in Authorization header and set UserID in context
+// UserIdentity parse access token in Authorization header and set UserID in context.
 func (m *Middleware) UserIdentity(ctx *gin.Context) {
 	header := ctx.GetHeader(HeaderAuthorization)
 	if header == "" {
@@ -56,9 +57,10 @@ func (m *Middleware) UserIdentity(ctx *gin.Context) {
 	}
 
 	ctx.Set(ContextUserID, claims.UserID)
+	ctx.Next()
 }
 
-// RequestLog logs every request with parameters: method, path, client_ip, remote_addr, user_agent, status and duration
+// RequestLog logs every request with parameters: method, path, client_ip, remote_addr, user_agent, status and duration.
 func (m *Middleware) RequestLog(ctx *gin.Context) {
 	startTime := time.Now()
 
