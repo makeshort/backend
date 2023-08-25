@@ -18,7 +18,7 @@ import (
 
 const AliasLength = 6
 
-// CreateURL     Creates a URL in database, assigned to user.
+// CreateUrl     Creates a URL in database, assigned to user.
 // @Summary      Create URL
 // @Description  Creates a URL in database, assigned to user
 // @Security     AccessToken
@@ -32,9 +32,9 @@ const AliasLength = 6
 // @Failure      409  {object}    response.Error
 // @Failure      500  {object}    response.Error
 // @Router       /url             [post]
-func (h *Handler) CreateURL(ctx *gin.Context) {
+func (h *Handler) CreateUrl(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.CreateURL"),
+		slog.String("op", "handler.CreateUrl"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
@@ -101,7 +101,72 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 	)
 }
 
-// DeleteURL     Deletes a URL.
+// UpdateUrl     Updates an URL.
+// @Summary      Update URL
+// @Description  Updates an url
+// @Security     AccessToken
+// @Tags         url
+// @Param        id path string true "id"
+// @Produce      json
+// @Param        input body       request.URL true "Url data"
+// @Success      200  {integer}     integer 1
+// @Failure      401  {object}      response.Error
+// @Failure      403  {object}      response.Error
+// @Failure      404  {object}      response.Error
+// @Failure      500  {object}      response.Error
+// @Router       /url/{id}          [patch]
+func (h *Handler) UpdateUrl(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.UpdateUrl"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
+	hexUrlID := ctx.Param("id")
+	urlID, err := primitive.ObjectIDFromHex(hexUrlID)
+	if err != nil {
+		log.Error("error occurred while parsing url id from hex to ObjectID",
+			slog.String("id", hexUrlID),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "url id is invalid")
+		return
+	}
+
+	var body request.UrlUpdate
+
+	if err = ctx.BindJSON(&body); err != nil {
+		log.Debug("error occurred while decode request body", sl.Err(err))
+		response.SendInvalidRequestBodyError(ctx)
+		return
+	}
+
+	parsedUrl, isUrlValid := validateUrl(body.Url)
+	if body.Url != "" && !isUrlValid {
+		log.Error("provided url is in invalid format",
+			slog.String("url", body.Url),
+		)
+		response.SendError(ctx, http.StatusBadRequest, "url is invalid")
+		return
+	}
+
+	err = h.service.Storage.UpdateUrl(ctx, urlID, body.Alias, parsedUrl)
+	if err != nil {
+		log.Error("error occurred while updating url",
+			slog.String("id", hexUrlID),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't update url")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.UrlUpdated{
+		ID:    hexUrlID,
+		Url:   body.Url,
+		Alias: body.Alias,
+	})
+}
+
+// DeleteUrl     Deletes a URL.
 // @Summary      Delete URL
 // @Description  Deletes an url from database
 // @Security     AccessToken
@@ -114,9 +179,9 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 // @Failure      404  {object}      response.Error
 // @Failure      500  {object}      response.Error
 // @Router       /url/{id}          [delete]
-func (h *Handler) DeleteURL(ctx *gin.Context) {
+func (h *Handler) DeleteUrl(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.DeleteURL"),
+		slog.String("op", "handler.DeleteUrl"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
@@ -199,7 +264,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 // Redirect redirects user from /{alias} to URL assigned to this alias.
 func (h *Handler) Redirect(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.DeleteURL"),
+		slog.String("op", "handler.DeleteUrl"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 

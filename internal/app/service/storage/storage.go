@@ -40,6 +40,7 @@ type Storage interface {
 	GetUrlByAlias(ctx context.Context, alias string) (URL, error)
 	GetUrlByID(ctx context.Context, id primitive.ObjectID) (URL, error)
 	IncrementRedirectsCounter(ctx context.Context, alias string) error
+	UpdateUrl(ctx context.Context, id primitive.ObjectID, alias string, url string) error
 	DeleteURL(ctx context.Context, alias string) error
 	CreateUser(ctx context.Context, email string, username string, passwordHash string) (primitive.ObjectID, error)
 	GetUserByCredentials(ctx context.Context, email string, passwordHash string) (User, error)

@@ -28,6 +28,12 @@ type UrlCreated struct {
 	Alias string `json:"alias"`
 }
 
+type UrlUpdated struct {
+	ID    string `json:"id"`
+	Url   string `json:"url,omitempty"`
+	Alias string `json:"alias,omitempty"`
+}
+
 type TokenPair struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`

@@ -59,9 +59,9 @@ func (r *Router) InitRoutes() *gin.Engine {
 
 		url := api.Group("/url", r.middleware.UserIdentity)
 		{
-			url.POST("/", r.handler.CreateURL)
-			// url.PATCH("/:id")
-			url.DELETE("/:id", r.middleware.CheckOwner, r.handler.DeleteURL)
+			url.POST("/", r.handler.CreateUrl)
+			url.PATCH("/:id", r.middleware.CheckOwner, r.handler.UpdateUrl)
+			url.DELETE("/:id", r.middleware.CheckOwner, r.handler.DeleteUrl)
 		}
 
 		user := api.Group("/user")

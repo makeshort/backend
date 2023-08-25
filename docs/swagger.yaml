@@ -253,6 +253,48 @@ paths:
       summary: Delete URL
       tags:
       - url
+    patch:
+      description: Updates an url
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Url data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.URL'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - AccessToken: []
+      summary: Update URL
+      tags:
+      - url
   /user/{id}:
     delete:
       description: Delete me from database
