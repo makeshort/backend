@@ -56,6 +56,7 @@ func (m *Middleware) UserIdentity(ctx *gin.Context) {
 	}
 
 	ctx.Set(ContextUserID, claims.UserID)
+	ctx.Next()
 }
 
 // RequestLog logs every request with parameters: method, path, client_ip, remote_addr, user_agent, status and duration
