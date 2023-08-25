@@ -66,6 +66,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 
 		user := api.Group("/user", r.middleware.UserIdentity)
 		{
+			// user.GET("/:id", h.GetUser)
 			// user.PATCH("/me", h.UpdateMe)
 			user.DELETE("/me", r.handler.DeleteMe)
 			user.GET("/me/urls", r.handler.GetMyURLs)
