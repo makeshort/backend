@@ -239,7 +239,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/url/{alias}": {
+        "/url/{id}": {
             "delete": {
                 "security": [
                     {
@@ -257,8 +257,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "alias",
-                        "name": "alias",
+                        "description": "id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -437,6 +437,9 @@ const docTemplate = `{
                 "alias": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "redirects": {
                     "type": "integer"
                 },
@@ -451,6 +454,9 @@ const docTemplate = `{
                 "alias": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "url": {
                     "type": "string"
                 }
@@ -460,6 +466,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "username": {

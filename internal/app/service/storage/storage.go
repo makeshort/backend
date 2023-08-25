@@ -38,6 +38,7 @@ type RefreshSession struct {
 type Storage interface {
 	CreateURL(ctx context.Context, link string, alias string, userID primitive.ObjectID) (primitive.ObjectID, error)
 	GetUrlByAlias(ctx context.Context, alias string) (URL, error)
+	GetUrlByID(ctx context.Context, id primitive.ObjectID) (URL, error)
 	IncrementRedirectsCounter(ctx context.Context, alias string) error
 	DeleteURL(ctx context.Context, alias string) error
 	CreateUser(ctx context.Context, email string, username string, passwordHash string) (primitive.ObjectID, error)

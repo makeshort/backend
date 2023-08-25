@@ -232,7 +232,7 @@
                 }
             }
         },
-        "/url/{alias}": {
+        "/url/{id}": {
             "delete": {
                 "security": [
                     {
@@ -250,8 +250,8 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "alias",
-                        "name": "alias",
+                        "description": "id",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -430,6 +430,9 @@
                 "alias": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "redirects": {
                     "type": "integer"
                 },
@@ -444,6 +447,9 @@
                 "alias": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "url": {
                     "type": "string"
                 }
@@ -453,6 +459,9 @@
             "type": "object",
             "properties": {
                 "email": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "username": {

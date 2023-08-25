@@ -57,7 +57,7 @@ func (h *Handler) DeleteMe(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
-	log.Info("user created",
+	log.Info("user deleted",
 		slog.String("id", hexUserID),
 	)
 }
@@ -101,9 +101,13 @@ func (h *Handler) GetMyURLs(ctx *gin.Context) {
 
 	urls := make([]response.URL, len(urlDocs))
 	for i, url := range urlDocs {
+		urls[i].ID = url.ID.Hex()
 		urls[i].Url = url.Link
 		urls[i].Alias = url.Alias
 		urls[i].Redirects = url.Redirects
+	}
+	if len(urls) == 0 {
+		ctx.Status(http.StatusNoContent)
 	}
 	ctx.JSON(http.StatusOK, urls)
 }

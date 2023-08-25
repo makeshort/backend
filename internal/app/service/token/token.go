@@ -9,7 +9,7 @@ import (
 )
 
 type Manager struct {
-	config       config.Token
+	config       *config.Config
 	accessSecret []byte
 }
 
@@ -24,20 +24,21 @@ type Pair struct {
 }
 
 // New returns a new instance of Manager.
-func New(config config.Token) *Manager {
+func New(config *config.Config) *Manager {
 	return &Manager{
-		accessSecret: []byte(config.Access.Secret),
+		config:       config,
+		accessSecret: []byte(config.Token.Access.Secret),
 	}
 }
 
 // GenerateTokenPair generates a new token pair with Access Token and Refresh Token.
-func (s *Manager) GenerateTokenPair(userID string) (*Pair, error) {
-	accessToken, err := s.generateJWT(userID, s.config.Access.TTL, s.accessSecret)
+func (m *Manager) GenerateTokenPair(userID string) (*Pair, error) {
+	accessToken, err := m.generateJWT(userID, m.accessSecret)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken := s.generateRefreshToken()
+	refreshToken := m.generateRefreshToken()
 
 	return &Pair{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
@@ -69,10 +70,10 @@ func (s *Manager) parseToken(rawToken string, signingKey []byte) (*Claims, error
 }
 
 // generateJWT generates a new JWT.
-func (s *Manager) generateJWT(userID string, timeToLive time.Duration, signingKey []byte) (string, error) {
+func (s *Manager) generateJWT(userID string, signingKey []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(timeToLive).Unix(),
+			ExpiresAt: time.Now().Add(s.config.Token.Access.TTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		userID,

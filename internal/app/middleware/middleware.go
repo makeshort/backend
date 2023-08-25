@@ -4,6 +4,7 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
 	"backend/internal/config"
+	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
@@ -33,25 +34,34 @@ func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Middle
 
 // UserIdentity parse access token in Authorization header and set UserID in context.
 func (m *Middleware) UserIdentity(ctx *gin.Context) {
+	log := m.log.With(
+		slog.String("op", "handler.UserIdentity"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
 	header := ctx.GetHeader(HeaderAuthorization)
 	if header == "" {
+		log.Debug("auth header is empty")
 		response.SendAuthFailedError(ctx)
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		log.Debug("auth header is invalid")
 		response.SendAuthFailedError(ctx)
 		return
 	}
 
 	if len(headerParts[1]) == 0 {
+		log.Debug("access token is empty")
 		response.SendAuthFailedError(ctx)
 		return
 	}
 
 	claims, err := m.service.TokenManager.ParseJWT(headerParts[1])
 	if err != nil {
+		log.Debug("can't parse token", sl.Err(err))
 		response.SendAuthFailedError(ctx)
 		return
 	}

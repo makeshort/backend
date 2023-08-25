@@ -60,12 +60,13 @@ func (r *Router) InitRoutes() *gin.Engine {
 		url := api.Group("/url", r.middleware.UserIdentity)
 		{
 			url.POST("/", r.handler.CreateURL)
-			// url.PATCH("/:alias", h.UpdateURL)
-			url.DELETE("/:alias", r.handler.DeleteURL)
+			// url.PATCH("/:id", h.UpdateURL)
+			url.DELETE("/:id", r.handler.DeleteURL)
 		}
 
 		user := api.Group("/user", r.middleware.UserIdentity)
 		{
+			// user.GET("/:id", h.GetUser)
 			// user.PATCH("/me", h.UpdateMe)
 			user.DELETE("/me", r.handler.DeleteMe)
 			user.GET("/me/urls", r.handler.GetMyURLs)
