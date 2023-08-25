@@ -115,10 +115,21 @@ func (s *Storage) CreateURL(ctx context.Context, link string, alias string, user
 	return doc.InsertedID.(primitive.ObjectID), err
 }
 
-// GetUrlByAlias returns a storage.URL object from database.
+// GetUrlByAlias finds a storage.URL by ID in database and return a storage.URL object.
 // If url does not found, function will return a storage.ErrURLNotFound error.
 func (s *Storage) GetUrlByAlias(ctx context.Context, alias string) (storage.URL, error) {
 	doc := s.urls.FindOne(ctx, bson.D{{"alias", alias}})
+	var url storage.URL
+	if err := doc.Decode(&url); err != nil {
+		return storage.URL{}, storage.ErrURLNotFound
+	}
+	return url, nil
+}
+
+// GetUrlByID finds a storage.URL by ID in database and return a storage.URL object.
+// If url does not found, function will return a storage.ErrURLNotFound error.
+func (s *Storage) GetUrlByID(ctx context.Context, id primitive.ObjectID) (storage.URL, error) {
+	doc := s.urls.FindOne(ctx, bson.D{{"_id", id}})
 	var url storage.URL
 	if err := doc.Decode(&url); err != nil {
 		return storage.URL{}, storage.ErrURLNotFound
@@ -132,10 +143,7 @@ func (s *Storage) IncrementRedirectsCounter(ctx context.Context, alias string) e
 		bson.D{{"alias", alias}},
 		bson.D{{"$inc", bson.D{{"redirects", 1}}},
 			{"$set", bson.D{{"updated_at", primitive.NewDateTimeFromTime(time.Now())}}}})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // DeleteURL deletes URL from database.

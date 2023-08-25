@@ -39,6 +39,8 @@ definitions:
     properties:
       alias:
         type: string
+      id:
+        type: string
       redirects:
         type: integer
       url:
@@ -48,12 +50,16 @@ definitions:
     properties:
       alias:
         type: string
+      id:
+        type: string
       url:
         type: string
     type: object
   response.User:
     properties:
       email:
+        type: string
+      id:
         type: string
       username:
         type: string
@@ -210,13 +216,13 @@ paths:
       summary: Create URL
       tags:
       - url
-  /url/{alias}:
+  /url/{id}:
     delete:
       description: Deletes an url from database
       parameters:
-      - description: alias
+      - description: id
         in: path
-        name: alias
+        name: id
         required: true
         type: string
       produces:

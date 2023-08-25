@@ -46,7 +46,7 @@ func (a *App) Run() {
 	storage := mongo.New(a.config)
 	a.log.Info("mongo client started")
 
-	tokenManager := token.New(a.config.Token)
+	tokenManager := token.New(a.config)
 	srv := service.New(storage, tokenManager, a.hasher)
 	r := router.New(a.config, a.log, srv)
 
