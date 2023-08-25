@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-// Register      Creates a user in database
+// Register      Creates a user in database.
 // @Summary      User registration
 // @Description  Creates a user in database
 // @Tags         auth
@@ -77,7 +77,7 @@ func (h *Handler) Register(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response.User{Email: body.Email, Username: body.Username})
 }
 
-// Login          Creates a session
+// Login          Creates a session.
 // @Summary       User login
 // @Description   Creates a session
 // @Tags          auth
@@ -138,7 +138,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 	})
 }
 
-// Logout        Delete session from database
+// Logout        Delete session from database.
 // @Summary      User logout
 // @Description  Delete session from database
 // @Tags         auth
@@ -180,7 +180,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-// RefreshTokens     Create a new token pair
+// RefreshTokens     Create a new token pair.
 // @Summary          Token refresh
 // @Description      Create a new token pair
 // @Tags             auth

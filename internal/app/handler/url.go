@@ -18,7 +18,7 @@ import (
 
 const AliasLength = 6
 
-// CreateURL     Creates a URL in database, assigned to user
+// CreateURL     Creates a URL in database, assigned to user.
 // @Summary      Create URL
 // @Description  Creates a URL in database, assigned to user
 // @Security     AccessToken
@@ -100,7 +100,7 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 	)
 }
 
-// DeleteURL     Deletes a URL
+// DeleteURL     Deletes a URL.
 // @Summary      Delete URL
 // @Description  Deletes an url from database
 // @Security     AccessToken
@@ -182,6 +182,7 @@ func (h *Handler) DeleteURL(ctx *gin.Context) {
 	)
 }
 
+// Redirect redirects user from /{alias} to URL assigned to this alias.
 func (h *Handler) Redirect(ctx *gin.Context) {
 	log := h.log.With(
 		slog.String("op", "handler.DeleteURL"),
@@ -219,6 +220,7 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 	)
 }
 
+// validateUrl validates URL and return validated email and boolean is email valid.
 func validateUrl(rawUrl string) (string, bool) {
 	parsedUrl, err := neturl.ParseRequestURI(rawUrl)
 	if err != nil {

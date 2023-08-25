@@ -19,7 +19,7 @@ func New(ctx *gin.Context) {
 	ctx.Next()
 }
 
-// Get returns the request identifier
+// Get returns the request identifier.
 func Get(c *gin.Context) string {
 	return c.Writer.Header().Get(headerXRequestID)
 }

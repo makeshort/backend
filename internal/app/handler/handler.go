@@ -12,6 +12,7 @@ type Handler struct {
 	service *service.Service
 }
 
+// New returns a new instance of Handler.
 func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Handler {
 	return &Handler{
 		config:  cfg,

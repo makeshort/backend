@@ -12,6 +12,7 @@ type Service struct {
 	Hasher       *hash.Hasher
 }
 
+// New returns a new instance of Service.
 func New(storage storage.Storage, tokenManager *token.Manager, hasher *hash.Hasher) *Service {
 	return &Service{
 		Storage:      storage,

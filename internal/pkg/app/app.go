@@ -19,12 +19,14 @@ import (
 	"syscall"
 )
 
+// App is a main app struct.
 type App struct {
 	config *config.Config
 	log    *slog.Logger
 	hasher *hash.Hasher
 }
 
+// New returns a new instance of App.
 func New(cfg *config.Config) *App {
 	log := initLogger(cfg.Env)
 	hasher := hash.New(cfg.HashSalt)
@@ -35,6 +37,7 @@ func New(cfg *config.Config) *App {
 	}
 }
 
+// Run runs the server.
 func (a *App) Run() {
 	gin.SetMode(gin.ReleaseMode)
 

@@ -14,7 +14,7 @@ import (
 	"net/mail"
 )
 
-// DeleteMe      Delete me from database
+// DeleteMe      Delete me from database.
 // @Summary      Delete me
 // @Description  Delete me from database
 // @Security     AccessToken
@@ -108,6 +108,7 @@ func (h *Handler) GetMyURLs(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, urls)
 }
 
+// checkEmailValidity checks is email valid.
 func checkEmailValidity(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil

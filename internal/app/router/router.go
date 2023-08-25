@@ -22,6 +22,7 @@ type Router struct {
 	service    *service.Service
 }
 
+// New returns a new instance of Router.
 func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Router {
 	mw := middleware.New(cfg, log, service)
 	h := handler.New(cfg, log, service)
@@ -34,7 +35,7 @@ func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Router
 	}
 }
 
-// InitRoutes create a new routes list for Handler
+// InitRoutes create a new routes list for handler.
 func (r *Router) InitRoutes() *gin.Engine {
 	router := gin.New()
 
@@ -76,7 +77,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 	return router
 }
 
-// logRoutes logs all routes for Handler
+// logRoutes logs all routes of Router.
 func (r *Router) logRoutes(routes gin.RoutesInfo) {
 	for _, route := range routes {
 		method := format.CompleteStringToLength(route.Method, 10, ' ')
