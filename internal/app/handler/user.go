@@ -14,6 +14,57 @@ import (
 	"net/mail"
 )
 
+// GetUser       Get user's information.
+// @Summary      Get user
+// @Description  Get user's information
+// @Tags         user
+// @Param        id path string true "id"
+// @Produce      json
+// @Success      200  {object}        response.User
+// @Failure      404  {object}        response.Error
+// @Failure      500  {object}        response.Error
+// @Router       /user/{id}           [get]
+func (h *Handler) GetUser(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.GetUser"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
+	id := ctx.Param("id")
+	userID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Error("error occurred while parsing user id from hex to ObjectID",
+			slog.String("id", id),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusNotFound, "id is invalid")
+		return
+	}
+
+	user, err := h.service.Storage.GetUserByID(ctx, userID)
+	if errors.Is(err, storage.ErrUserNotFound) {
+		log.Debug("user not found",
+			slog.String("id", id),
+		)
+		response.SendError(ctx, http.StatusNotFound, "user not found")
+		return
+	}
+	if err != nil {
+		log.Error("user not found",
+			slog.String("id", id),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't get user")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.User{
+		ID:       user.ID.Hex(),
+		Email:    user.Email,
+		Username: user.Username,
+	})
+}
+
 // DeleteMe      Delete me from database.
 // @Summary      Delete me
 // @Description  Delete me from database

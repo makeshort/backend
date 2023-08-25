@@ -253,6 +253,33 @@ paths:
       summary: Delete URL
       tags:
       - url
+  /user/{id}:
+    get:
+      description: Get user's information
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Get user
+      tags:
+      - user
   /user/me:
     delete:
       description: Delete me from database

@@ -188,6 +188,17 @@ func (s *Storage) GetUserByCredentials(ctx context.Context, email string, passwo
 	return user, nil
 }
 
+func (s *Storage) GetUserByID(ctx context.Context, id primitive.ObjectID) (storage.User, error) {
+	doc := s.users.FindOne(ctx, bson.D{{"_id", id}})
+
+	var user storage.User
+
+	if err := doc.Decode(&user); err != nil {
+		return storage.User{}, storage.ErrUserNotFound
+	} // TODO: ErrNoDocuments check
+	return user, nil
+}
+
 // GetUserURLs get and return all storage.URL documents in database, with given owner.
 func (s *Storage) GetUserURLs(ctx context.Context, userID primitive.ObjectID) ([]storage.URL, error) {
 	cur, err := s.urls.Find(ctx, bson.D{{"user_id", userID}})

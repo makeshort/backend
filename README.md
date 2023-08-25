@@ -24,10 +24,16 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | url       | string | The original url       |
 | redirects | int    | The redirects counter  |
 
+#### Token pair:
+
+| Field         | Type   | Description       |
+|:--------------|:-------|:------------------|
+| access_token  | string | The access token  |
+| refresh_token | string | The refresh token |
+
 
 
 ## Endpoints:
-
 
 #### **POST** `/api/auth/session` - login (create a session)
 
@@ -38,12 +44,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | email    | string | Yes      |
 | password | string | Yes      |
 
-**Success response:** `200 OK`
-
-| Field         | Type   |
-|:--------------|:-------|
-| access_token  | string |
-| refresh_token | string |
+**Success response:** `200 OK` and [token pair](#token-pair) object.
 
 **Possible errors:**
 
@@ -75,13 +76,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | username | string | Yes      |
 | password | string | Yes      | 
 
-**Success response:** `201 Created`
-
-| Field    | Type   |
-|:---------|:-------|
-| email    | string |
-| username | string |
-
+**Success response:** `201 Created` and [user](#user) object.
 
 **Possible errors:**
 
@@ -100,7 +95,7 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 |:---------|:-------|:---------|
 | token    | string | Yes      |
 
-**Success response:** `200 OK`
+**Success response:** `200 OK` and [token pair](#token-pair) object.
 
 | Field         | Type   |
 |:--------------|:-------|
@@ -114,6 +109,20 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 |:-----|:----------------------|
 | 403  | Invalid refresh token |
 
+---
+
+#### **GET** `/api/user/{id}` - get user
+
+**Success response:** `200 OK` and [user](#user) object.
+
+**Possible errors:**
+
+| Code | Description    |
+|:-----|:---------------|
+| 404  | User not found |
+
+---
+
 #### **DELETE** `/api/user/me` - delete me
 
 **Success response:** `200 OK`
@@ -125,17 +134,11 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 | 400  | Bad request. User not found in database |
 | 401  | Unauthorized                            |
 
+---
+
 #### **GET** `/api/user/me/urls` - get my URLs
 
-**Success response:** `200 OK`
-
-Array of URL entities:
-
-| Field     | Type   |
-|:----------|:-------|
-| url       | string |
-| alias     | string |
-| redirects | int    |
+**Success response:** `200 OK` and array of [url](#url) objects.
 
 **Possible errors:**
 
@@ -154,12 +157,7 @@ Array of URL entities:
 | url   | string | Yes      |
 | alias | string | No       |
 
-**Success response:** `201 Created`
-
-| Field | Type   |
-|:------|:-------|
-| url   | string |
-| alias | string |
+**Success response:** `201 Created` and [url](#url) object.
 
 **Possible errors:**
 
@@ -171,7 +169,7 @@ Array of URL entities:
 
 ---
 
-#### **DELETE** `/api/url/:alias` - delete URL
+#### **DELETE** `/api/url/{alias}` - delete URL
 
 **Success response:** `200 OK`
 

@@ -64,12 +64,15 @@ func (r *Router) InitRoutes() *gin.Engine {
 			url.DELETE("/:id", r.handler.DeleteURL)
 		}
 
-		user := api.Group("/user", r.middleware.UserIdentity)
+		user := api.Group("/user")
 		{
-			// user.GET("/:id", h.GetUser)
-			// user.PATCH("/me", h.UpdateMe)
-			user.DELETE("/me", r.handler.DeleteMe)
-			user.GET("/me/urls", r.handler.GetMyURLs)
+			user.GET("/:id", r.handler.GetUser)
+			me := user.Group("/me", r.middleware.UserIdentity)
+			{
+				// me.PATCH("/", h.UpdateMe)
+				me.DELETE("/", r.handler.DeleteMe)
+				me.GET("/urls", r.handler.GetMyURLs)
+			}
 		}
 	}
 
