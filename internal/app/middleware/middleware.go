@@ -8,6 +8,7 @@ import (
 	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/exp/slog"
@@ -163,6 +164,7 @@ func (m *Middleware) RequestLog(ctx *gin.Context) {
 		entry.Info("request completed",
 			slog.Int("status", ctx.Writer.Status()),
 			// slog.Int("bytes", ctx.Writer.Size()), // TODO: Fix response size
-			slog.String("duration", time.Since(startTime).String()))
+			slog.String("duration", fmt.Sprintf("%dus", time.Since(startTime).Microseconds())),
+		)
 	}()
 }
