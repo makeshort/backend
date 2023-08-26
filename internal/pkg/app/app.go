@@ -1,11 +1,11 @@
 package app
 
 import (
-	"backend/internal/app/repository"
-	"backend/internal/app/repository/postgres"
 	"backend/internal/app/router"
 	"backend/internal/app/service"
 	"backend/internal/app/service/hash"
+	"backend/internal/app/service/repository"
+	"backend/internal/app/service/repository/postgres"
 	"backend/internal/app/service/storage/mongo"
 	"backend/internal/app/service/token"
 	"backend/internal/config"
@@ -84,14 +84,14 @@ func (a *App) Run() {
 
 	err = server.Shutdown(context.Background())
 	if err != nil {
-		a.log.Error("error occurred on server shutting down: %s", err.Error())
+		a.log.Error("error occurred on server shutting down", sl.Err(err))
 	}
 
 	a.log.Info("server stopped")
 
 	err = storage.Client.Disconnect(context.Background())
 	if err != nil {
-		a.log.Error("error occurred on db shutting down: %s", err.Error())
+		a.log.Error("error occurred on db shutting down", sl.Err(err))
 	}
 
 	a.log.Info("db disconnected")
