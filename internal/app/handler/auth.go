@@ -49,33 +49,21 @@ func (h *Handler) Register(ctx *gin.Context) {
 
 	passwordHash := h.service.Hasher.Create(body.Password)
 
-	userID, err := h.service.Storage.CreateUser(ctx, body.Email, body.Username, passwordHash)
-	if errors.Is(err, storage.ErrUserAlreadyExists) {
-		log.Debug("user already exists",
-			slog.String("username", body.Username),
-			slog.String("email", body.Email),
-		)
-		response.SendError(ctx, http.StatusConflict, "user with this email or username already exists")
-		return
-	}
+	id, err := h.service.Repository.User.Create(ctx, body.Email, body.Username, passwordHash)
 	if err != nil {
-		log.Error("error occurred while saving user",
-			slog.String("username", body.Username),
-			slog.String("email", body.Email),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusInternalServerError, "can't save user")
+		log.Error("error occurred while creating user", sl.Err(err))
+		response.SendError(ctx, http.StatusInternalServerError, "can't create user")
 		return
 	}
 
 	log.Info("user created",
-		slog.String("id", userID.Hex()),
+		slog.String("id", id),
 		slog.String("username", body.Username),
 		slog.String("email", body.Email),
 	)
 
 	ctx.JSON(http.StatusCreated, response.User{
-		ID:       userID.Hex(),
+		ID:       id,
 		Email:    body.Email,
 		Username: body.Username,
 	})

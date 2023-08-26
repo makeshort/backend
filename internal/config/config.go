@@ -49,6 +49,12 @@ type TokenRefresh struct {
 
 type Db struct {
 	ConnectionURI string `yaml:"connection_uri" env-required:"true"`
+	Host          string `yaml:"host"`
+	Port          string `yaml:"port"`
+	User          string `yaml:"user"`
+	Name          string `yaml:"name"`
+	Password      string `yaml:"password"`
+	ModeSSL       string `yaml:"sslmode"`
 }
 
 type Server struct {

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"backend/internal/app/repository"
+	"backend/internal/app/repository/postgres"
 	"backend/internal/app/router"
 	"backend/internal/app/service"
 	"backend/internal/app/service/hash"
@@ -47,7 +49,13 @@ func (a *App) Run() {
 	a.log.Info("mongo client started")
 
 	tokenManager := token.New(a.config)
-	srv := service.New(storage, tokenManager, a.hasher)
+	db, err := postgres.New(a.config.Db)
+	if err != nil {
+		a.log.Error("error occurred while connecting to postgres", sl.Err(err))
+		os.Exit(1)
+	}
+	repo := repository.New(db)
+	srv := service.New(storage, tokenManager, a.hasher, repo)
 	r := router.New(a.config, a.log, srv)
 
 	server := &http.Server{
@@ -74,7 +82,7 @@ func (a *App) Run() {
 
 	a.log.Info("server shutting down")
 
-	err := server.Shutdown(context.Background())
+	err = server.Shutdown(context.Background())
 	if err != nil {
 		a.log.Error("error occurred on server shutting down: %s", err.Error())
 	}
