@@ -3,7 +3,7 @@ package handler
 import (
 	"backend/internal/app/service"
 	"backend/internal/config"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type Handler struct {

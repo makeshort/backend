@@ -8,7 +8,7 @@ import (
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 )
 

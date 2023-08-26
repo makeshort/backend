@@ -12,7 +12,7 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"

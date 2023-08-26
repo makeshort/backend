@@ -11,7 +11,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 	neturl "net/url"
 )
