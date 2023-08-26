@@ -9,19 +9,18 @@ import (
 
 type User interface {
 	Create(ctx context.Context, email string, username string, passwordHash string) (string, error)
-	Delete(ctx context.Context, uuid string) error
+	GetByID(ctx context.Context, id string) (user.User, error)
+	GetByCredentials(ctx context.Context, email string, passwordHash string) (user.User, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type Url interface {
 }
 
-type Session interface {
-}
-
 type Repository struct {
-	User    User
-	Url     Url
-	Session Session
+	User *user.Postgres
+	Url  *url.Postgres
+	// Session Session
 }
 
 func New(db *sqlx.DB) *Repository {

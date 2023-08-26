@@ -31,26 +31,10 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	)
 
 	id := ctx.Param("id")
-	userID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Error("error occurred while parsing user id from hex to ObjectID",
-			slog.String("id", id),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusNotFound, "id is invalid")
-		return
-	}
 
-	user, err := h.service.Storage.GetUserByID(ctx, userID)
-	if errors.Is(err, storage.ErrUserNotFound) {
-		log.Debug("user not found",
-			slog.String("id", id),
-		)
-		response.SendError(ctx, http.StatusNotFound, "user not found")
-		return
-	}
+	user, err := h.service.Repository.User.GetByID(ctx, id)
 	if err != nil {
-		log.Error("user not found",
+		log.Error("error occurred while getting user",
 			slog.String("id", id),
 			sl.Err(err),
 		)
@@ -59,7 +43,7 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response.User{
-		ID:       user.ID.Hex(),
+		ID:       user.ID,
 		Email:    user.Email,
 		Username: user.Username,
 	})

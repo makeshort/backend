@@ -4,10 +4,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Url struct {
+type Postgres struct {
 	db *sqlx.DB
 }
 
-func New(db *sqlx.DB) *Url {
-	return &Url{db: db}
+func New(db *sqlx.DB) *Postgres {
+	return &Postgres{db: db}
 }

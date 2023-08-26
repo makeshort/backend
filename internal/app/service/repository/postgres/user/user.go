@@ -4,21 +4,30 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
-type User struct {
+type Postgres struct {
 	db *sqlx.DB
 }
 
-func New(db *sqlx.DB) *User {
-	return &User{db: db}
+type User struct {
+	ID           string    `db:"id"`
+	Email        string    `db:"email"`
+	Username     string    `db:"username"`
+	PasswordHash string    `db:"password_hash"`
+	CreatedAt    time.Time `db:"created_at"`
 }
 
-func (u *User) Create(ctx context.Context, email string, username string, passwordHash string) (string, error) {
+func New(db *sqlx.DB) *Postgres {
+	return &Postgres{db: db}
+}
+
+func (p *Postgres) Create(ctx context.Context, email string, username string, passwordHash string) (string, error) {
 	var id string
 
 	query := fmt.Sprintf("INSERT INTO users (email, username, password_hash) values ($1, $2, $3) RETURNING id")
-	row := u.db.QueryRowContext(ctx, query, email, username, passwordHash)
+	row := p.db.QueryRowContext(ctx, query, email, username, passwordHash)
 
 	if row.Err() != nil {
 		return "", row.Err()
@@ -31,9 +40,29 @@ func (u *User) Create(ctx context.Context, email string, username string, passwo
 	return id, nil
 }
 
-func (u *User) Delete(ctx context.Context, uuid string) error {
+func (p *Postgres) Delete(ctx context.Context, id string) error {
 	query := fmt.Sprintf("DELETE FROM users WHERE id = $1")
-	row := u.db.QueryRowContext(ctx, query, uuid)
+	row := p.db.QueryRowContext(ctx, query, id)
 
 	return row.Err()
+}
+
+func (p *Postgres) GetByID(ctx context.Context, id string) (User, error) {
+	var user User
+
+	query := fmt.Sprintf("SELECT * FROM users WHERE id = $1")
+
+	err := p.db.GetContext(ctx, &user, query, id)
+
+	return user, err
+}
+
+func (p *Postgres) GetByCredentials(ctx context.Context, email string, passwordHash string) (User, error) {
+	var user User
+
+	query := fmt.Sprintf("SELECT * FROM users WHERE email = $1 AND password_hash = $2")
+
+	err := p.db.GetContext(ctx, &user, query, email, passwordHash)
+
+	return user, err
 }
