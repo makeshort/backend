@@ -4,7 +4,9 @@ import (
 	"backend/internal/app/router"
 	"backend/internal/app/service"
 	"backend/internal/app/service/hash"
-	"backend/internal/app/service/storage/mongo"
+	"backend/internal/app/service/repository"
+	"backend/internal/app/service/repository/postgres"
+	"backend/internal/app/service/repository/redis"
 	"backend/internal/app/service/token"
 	"backend/internal/config"
 	"backend/internal/lib/logger/prettyslog"
@@ -43,11 +45,21 @@ func (a *App) Run() {
 
 	a.log.Info("make.short backend running", slog.String("env", a.config.Env))
 
-	storage := mongo.New(a.config)
-	a.log.Info("mongo client started")
-
 	tokenManager := token.New(a.config)
-	srv := service.New(storage, tokenManager, a.hasher)
+	postgresDB, err := postgres.New(a.config.Postgres)
+	if err != nil {
+		a.log.Error("error occurred while connecting to postgres", sl.Err(err))
+		os.Exit(1)
+	}
+
+	redisDB, err := redis.New(a.config.Redis)
+	if err != nil {
+		a.log.Error("error occurred while connecting to redis", sl.Err(err))
+		os.Exit(1)
+	}
+
+	repo := repository.New(postgresDB, redisDB, a.config)
+	srv := service.New(tokenManager, a.hasher, repo)
 	r := router.New(a.config, a.log, srv)
 
 	server := &http.Server{
@@ -74,19 +86,26 @@ func (a *App) Run() {
 
 	a.log.Info("server shutting down")
 
-	err := server.Shutdown(context.Background())
+	err = server.Shutdown(context.Background())
 	if err != nil {
-		a.log.Error("error occurred on server shutting down: %s", err.Error())
+		a.log.Error("error occurred on server shutting down", sl.Err(err))
 	}
 
 	a.log.Info("server stopped")
 
-	err = storage.Client.Disconnect(context.Background())
+	err = redisDB.Close()
 	if err != nil {
-		a.log.Error("error occurred on db shutting down: %s", err.Error())
+		a.log.Error("error occurred on redis connection closing down", sl.Err(err))
 	}
 
-	a.log.Info("db disconnected")
+	a.log.Info("redis connection closed")
+
+	err = postgresDB.Close()
+	if err != nil {
+		a.log.Error("error occurred on postgresql connection closing down", sl.Err(err))
+	}
+
+	a.log.Info("postgres connection closed")
 }
 
 func initLogger(env string) *slog.Logger {

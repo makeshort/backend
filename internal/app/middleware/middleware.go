@@ -3,14 +3,13 @@ package middleware
 import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
-	"backend/internal/app/service/storage"
+	"backend/internal/app/service/repository"
 	"backend/internal/config"
 	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -82,39 +81,20 @@ func (m *Middleware) CheckOwner(ctx *gin.Context) {
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
-	hexUrlID := ctx.Param("id")
-	urlID, err := primitive.ObjectIDFromHex(hexUrlID)
-	if err != nil {
-		log.Error("error occurred while parsing url id from hex to ObjectID",
-			slog.String("id", hexUrlID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusInternalServerError, "url id is invalid")
-		return
-	}
+	urlID := ctx.Param("id")
+	userID := ctx.GetString(ContextUserID)
 
-	hexUserID := ctx.GetString(ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(hexUserID)
-	if err != nil {
-		log.Error("error occurred while parsing user id from hex to ObjectID",
-			slog.String("id", hexUserID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusNotFound, "user id is invalid")
-		return
-	}
-
-	url, err := m.service.Storage.GetUrlByID(ctx, urlID)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	url, err := m.service.Repository.Url.GetByID(ctx, urlID)
+	if errors.Is(err, repository.ErrURLNotFound) {
 		log.Debug("url not found",
-			slog.String("id", hexUrlID),
+			slog.String("id", urlID),
 		)
 		response.SendError(ctx, http.StatusNotFound, "url with this id not found")
 		return
 	}
 	if err != nil {
 		log.Error("error occurred while getting url",
-			slog.String("id", hexUrlID),
+			slog.String("id", urlID),
 			sl.Err(err),
 		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't get url")
