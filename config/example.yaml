@@ -1,4 +1,4 @@
-env: "local" # or dev, prod
+env: "local" # or dev, prod, test
 hash_salt: ""
 
 token:
