@@ -8,7 +8,6 @@ import (
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log/slog"
 	"net/http"
 	"net/mail"
@@ -66,18 +65,9 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
-	hexUserID := ctx.GetString(middleware.ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(hexUserID)
-	if err != nil {
-		log.Error("error occurred while parsing user id from hex to ObjectID",
-			slog.String("id", hexUserID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusUnauthorized, "can't parse auth token")
-		return
-	}
+	userID := ctx.GetString(middleware.ContextUserID)
 
-	err = h.service.Storage.DeleteUser(ctx, userID)
+	err := h.service.Repository.User.Delete(ctx, userID)
 	if errors.Is(err, storage.ErrUserNotFound) {
 		log.Info("user not found")
 		response.SendError(ctx, http.StatusNotFound, "user not found")
@@ -85,7 +75,7 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 	}
 	if err != nil {
 		log.Error("error occurred while deleting user",
-			slog.String("id", hexUserID),
+			slog.String("id", userID),
 			sl.Err(err),
 		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't delete user")
@@ -94,7 +84,7 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 
 	ctx.Status(http.StatusOK)
 	log.Info("user deleted",
-		slog.String("id", hexUserID),
+		slog.String("id", userID),
 	)
 }
 
@@ -115,21 +105,12 @@ func (h *Handler) GetUserUrls(ctx *gin.Context) {
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
-	hexUserID := ctx.GetString(middleware.ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(hexUserID)
-	if err != nil {
-		log.Error("error occurred while parsing user id from hex to ObjectID",
-			slog.String("id", hexUserID),
-			sl.Err(err),
-		)
-		response.SendAuthFailedError(ctx)
-		return
-	}
+	id := ctx.GetString(middleware.ContextUserID)
 
-	urlDocs, err := h.service.Storage.GetUserURLs(ctx, userID)
+	urlDocs, err := h.service.Repository.User.GetUrls(ctx, id)
 	if err != nil {
 		log.Error("error occurred while getting user urls",
-			slog.String("id", hexUserID),
+			slog.String("id", id),
 			sl.Err(err),
 		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't get urls")
@@ -138,9 +119,9 @@ func (h *Handler) GetUserUrls(ctx *gin.Context) {
 
 	urls := make([]response.URL, len(urlDocs))
 	for i, url := range urlDocs {
-		urls[i].ID = url.ID.Hex()
-		urls[i].Url = url.Link
-		urls[i].Alias = url.Alias
+		urls[i].ID = url.ID
+		urls[i].Url = url.LongURL
+		urls[i].Alias = url.ShortURL
 		urls[i].Redirects = url.Redirects
 	}
 	if len(urls) == 0 {

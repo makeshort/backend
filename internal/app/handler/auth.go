@@ -96,7 +96,7 @@ func (h *Handler) Login(ctx *gin.Context) {
 
 	passwordHash := h.service.Hasher.Create(body.Password)
 
-	user, err := h.service.Storage.GetUserByCredentials(ctx, body.Email, passwordHash)
+	user, err := h.service.Repository.User.GetByCredentials(ctx, body.Email, passwordHash)
 	if err != nil {
 		log.Debug("user not found in database",
 			slog.String("email", body.Email),
@@ -105,22 +105,22 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	tokenPair, err := h.service.TokenManager.GenerateTokenPair(user.ID.Hex())
+	tokenPair, err := h.service.TokenManager.GenerateTokenPair(user.ID)
 	if err != nil {
 		log.Error("error occurred while generating token pair",
-			slog.String("user_id", user.ID.Hex()),
+			slog.String("user_id", user.ID),
 			sl.Err(err),
 		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't create token pair")
 		return
 	}
 
-	_, err = h.service.Storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
-	if err != nil {
-		log.Error("error occurred while creating refresh session in database")
-		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
-		return
-	}
+	//_, err = h.service.Storage.CreateRefreshSession(ctx, user.ID, tokenPair.RefreshToken, ctx.ClientIP(), ctx.Request.UserAgent())
+	//if err != nil {
+	//	log.Error("error occurred while creating refresh session in database")
+	//	response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
+	//	return
+	//}
 
 	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 

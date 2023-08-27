@@ -15,14 +15,6 @@ CREATE TABLE urls
     user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     long_url varchar(2048) NOT NULL,
     short_url varchar(10) NOT NULL UNIQUE,
+    redirects int DEFAULT 0,
     created_at timestamp DEFAULT now() NOT NULL
-);
-
-CREATE TABLE statistics
-(
-    id uuid DEFAULT uuid_generate_v4() NOT NULL UNIQUE,
-    url_id uuid REFERENCES urls(id) ON DELETE CASCADE NOT NULL,
-    ip varchar(15) NOT NULL,
-    user_agent varchar(255) NOT NULL,
-    timestamp timestamp DEFAULT now() NOT NULL
 );
