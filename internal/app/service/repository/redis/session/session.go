@@ -21,6 +21,7 @@ type Session struct {
 	ExpiresAt time.Time
 }
 
+// New returns a new instance of *Redis.
 func New(client *redis.Client, cfg *config.Config) *Redis {
 	return &Redis{
 		client: client,
@@ -28,6 +29,8 @@ func New(client *redis.Client, cfg *config.Config) *Redis {
 	}
 }
 
+// Create creates a new session in redis storage.
+// If session with provided refresh token already exists, function will return an ErrRefreshTokenAlreadyExists.
 func (r *Redis) Create(ctx context.Context, refreshToken string, userID string, ip string, userAgent string) error {
 	exists, err := r.client.Exists(ctx, refreshToken).Result()
 	if err != nil {
@@ -53,6 +56,8 @@ func (r *Redis) Create(ctx context.Context, refreshToken string, userID string, 
 	return r.client.Set(ctx, refreshToken, marshalledSession, r.config.Token.Refresh.TTL).Err()
 }
 
+// Close deletes a session from redis storage by refresh token.
+// If session not exists, function will return an ErrSessionNotExists.
 func (r *Redis) Close(ctx context.Context, refreshToken string) error {
 	exists, err := r.client.Exists(ctx, refreshToken).Result()
 	if err != nil {
@@ -64,6 +69,8 @@ func (r *Redis) Close(ctx context.Context, refreshToken string) error {
 	return r.client.Del(ctx, refreshToken).Err()
 }
 
+// Get returns a Session from redis storage by refresh token.
+// If session not exists, function will return an ErrSessionNotExists.
 func (r *Redis) Get(ctx context.Context, refreshToken string) (Session, error) {
 	exists, err := r.client.Exists(ctx, refreshToken).Result()
 	if err != nil {

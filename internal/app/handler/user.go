@@ -107,7 +107,7 @@ func (h *Handler) GetUserUrls(ctx *gin.Context) {
 
 	id := ctx.GetString(middleware.ContextUserID)
 
-	urlDocs, err := h.service.Repository.User.GetUrls(ctx, id)
+	urlDocs, err := h.service.Repository.User.GetUrlsList(ctx, id)
 	if err != nil {
 		log.Error("error occurred while getting user urls",
 			slog.String("id", id),

@@ -15,7 +15,7 @@ type User interface {
 	Create(ctx context.Context, email string, username string, passwordHash string) (string, error)
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByCredentials(ctx context.Context, email string, passwordHash string) (user.User, error)
-	GetUrls(ctx context.Context, id string) ([]url.URL, error)
+	GetUrlsList(ctx context.Context, id string) ([]url.URL, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -52,6 +52,5 @@ var (
 	ErrURLNotFound            = errors.New("url not found")
 	ErrAliasAlreadyExists     = errors.New("alias already exists")
 	ErrUserNotFound           = errors.New("user not found")
-	ErrUserAlreadyExists      = errors.New("user already exists")
 	ErrRefreshSessionNotFound = errors.New("refresh session not found")
 )

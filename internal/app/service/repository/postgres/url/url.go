@@ -21,10 +21,13 @@ type URL struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+// New returns a new instance of *Postgres.
 func New(db *sqlx.DB) *Postgres {
 	return &Postgres{db: db}
 }
 
+// Create creates a new url in database. If url with provided short url,
+// function will return an ErrShortUrlAlreadyExists.
 func (p *Postgres) Create(ctx context.Context, longUrl string, shortUrl string, userID string) (string, error) {
 	var id string
 
@@ -37,6 +40,8 @@ func (p *Postgres) Create(ctx context.Context, longUrl string, shortUrl string, 
 	return id, err
 }
 
+// GetByID returns an url by its ID.
+// If url with this ID not exists in database, function will return an ErrUrlNotFound.
 func (p *Postgres) GetByID(ctx context.Context, id string) (URL, error) {
 	var url URL
 
@@ -50,6 +55,8 @@ func (p *Postgres) GetByID(ctx context.Context, id string) (URL, error) {
 	return url, err
 }
 
+// GetByShortUrl returns an url by its short url.
+// If url with this short url not exists in database, function will return an ErrUrlNotFound.
 func (p *Postgres) GetByShortUrl(ctx context.Context, shortUrl string) (URL, error) {
 	var url URL
 
@@ -63,6 +70,8 @@ func (p *Postgres) GetByShortUrl(ctx context.Context, shortUrl string) (URL, err
 	return url, err
 }
 
+// IncrementRedirectsCounter increments url's redirects counter in database.
+// If url not exists, function wil return an ErrUrlNotFound.
 func (p *Postgres) IncrementRedirectsCounter(ctx context.Context, id string) error {
 	query := "UPDATE urls SET redirects = redirects + 1 WHERE id = $1"
 
@@ -83,6 +92,9 @@ func (p *Postgres) IncrementRedirectsCounter(ctx context.Context, id string) err
 	return nil
 }
 
+// Update updates an url in database. If url with provided ID not exists,
+// function will return an ErrUrlNotFound.
+// If some fields (short url or long url) are empty, they won't be updated.
 func (p *Postgres) Update(ctx context.Context, id string, shortUrl string, longUrl string) (URL, error) {
 	var url URL
 
@@ -98,6 +110,8 @@ func (p *Postgres) Update(ctx context.Context, id string, shortUrl string, longU
 	return url, err
 }
 
+// Delete deletes an url from database by its ID.
+// If url with provided ID now exists in database, function will return an ErrUrlNotFound.
 func (p *Postgres) Delete(ctx context.Context, id string) error {
 	query := "DELETE FROM urls WHERE id = $1"
 	res, err := p.db.ExecContext(ctx, query, id)
