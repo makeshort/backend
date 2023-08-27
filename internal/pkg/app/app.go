@@ -46,13 +46,13 @@ func (a *App) Run() {
 	a.log.Info("make.short backend running", slog.String("env", a.config.Env))
 
 	tokenManager := token.New(a.config)
-	postgresDB, err := postgres.New(a.config.Db)
+	postgresDB, err := postgres.New(a.config.Postgres)
 	if err != nil {
 		a.log.Error("error occurred while connecting to postgres", sl.Err(err))
 		os.Exit(1)
 	}
 
-	redisDB, err := redis.New(a.config)
+	redisDB, err := redis.New(a.config.Redis)
 	if err != nil {
 		a.log.Error("error occurred while connecting to redis", sl.Err(err))
 		os.Exit(1)

@@ -6,10 +6,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func New(cfg *config.Config) (*redis.Client, error) {
+func New(cfg config.Redis) (*redis.Client, error) {
 	db := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
+		Addr:     cfg.Host,
+		Username: cfg.Username,
+		Password: cfg.Password,
 		DB:       0,
 	})
 

@@ -7,7 +7,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func New(cfg config.Db) (*sqlx.DB, error) {
+func New(cfg config.PostgresDB) (*sqlx.DB, error) {
 	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.User, cfg.Name, cfg.Password, cfg.ModeSSL))
 	if err != nil {
