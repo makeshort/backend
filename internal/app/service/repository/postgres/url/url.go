@@ -2,6 +2,8 @@ package url
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/jmoiron/sqlx"
 	"time"
 )
@@ -27,45 +29,58 @@ func (p *Postgres) Create(ctx context.Context, longUrl string, shortUrl string, 
 	var id string
 
 	query := "INSERT INTO urls (user_id, long_url, short_url) values ($1, $2, $3) RETURNING id"
-	row := p.db.QueryRowContext(ctx, query, userID, longUrl, shortUrl)
-
-	if row.Err() != nil {
-		return "", row.Err()
+	err := p.db.GetContext(ctx, &id, query, userID, longUrl, shortUrl)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrShortUrlAlreadyExists
 	}
 
-	if err := row.Scan(&id); err != nil {
-		return "", err
-	}
-
-	return id, nil
+	return id, err
 }
 
 func (p *Postgres) GetByID(ctx context.Context, id string) (URL, error) {
-	var user URL
+	var url URL
 
 	query := "SELECT * FROM urls WHERE id = $1"
 
-	err := p.db.GetContext(ctx, &user, query, id)
+	err := p.db.GetContext(ctx, &url, query, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return URL{}, ErrUrlNotFound
+	}
 
-	return user, err
+	return url, err
 }
 
 func (p *Postgres) GetByShortUrl(ctx context.Context, shortUrl string) (URL, error) {
-	var user URL
+	var url URL
 
 	query := "SELECT * FROM urls WHERE short_url = $1"
 
-	err := p.db.GetContext(ctx, &user, query, shortUrl)
+	err := p.db.GetContext(ctx, &url, query, shortUrl)
+	if errors.Is(err, sql.ErrNoRows) {
+		return URL{}, ErrUrlNotFound
+	}
 
-	return user, err
+	return url, err
 }
 
 func (p *Postgres) IncrementRedirectsCounter(ctx context.Context, id string) error {
 	query := "UPDATE urls SET redirects = redirects + 1 WHERE id = $1"
 
-	_, err := p.db.ExecContext(ctx, query, id)
+	res, err := p.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
 
-	return err
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrUrlNotFound
+	}
+
+	return nil
 }
 
 func (p *Postgres) Update(ctx context.Context, id string, shortUrl string, longUrl string) (URL, error) {
@@ -75,16 +90,28 @@ func (p *Postgres) Update(ctx context.Context, id string, shortUrl string, longU
 
 	row := p.db.QueryRowContext(ctx, query, shortUrl, longUrl, id)
 
-	if err := row.Scan(&url.ID, &url.UserID, &url.LongURL, &url.ShortURL, &url.Redirects, &url.CreatedAt); err != nil {
-		return URL{}, err
+	err := row.Scan(&url.ID, &url.UserID, &url.LongURL, &url.ShortURL, &url.Redirects, &url.CreatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return URL{}, ErrUrlNotFound
 	}
 
-	return url, nil
+	return url, err
 }
 
 func (p *Postgres) Delete(ctx context.Context, id string) error {
 	query := "DELETE FROM urls WHERE id = $1"
-	_, err := p.db.ExecContext(ctx, query, id)
+	res, err := p.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
 
-	return err
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrUrlNotFound
+	}
+
+	return nil
 }
