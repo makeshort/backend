@@ -45,20 +45,19 @@ func (a *App) Run() {
 
 	a.log.Info("make.short backend running", slog.String("env", a.config.Env))
 
-	//storage := mongo.New(a.config)
-	//a.log.Info("mongo client started")
-
 	tokenManager := token.New(a.config)
 	postgresDB, err := postgres.New(a.config.Db)
 	if err != nil {
 		a.log.Error("error occurred while connecting to postgres", sl.Err(err))
 		os.Exit(1)
 	}
-	redisDB, err := redis.New()
+
+	redisDB, err := redis.New(a.config)
 	if err != nil {
 		a.log.Error("error occurred while connecting to redis", sl.Err(err))
 		os.Exit(1)
 	}
+
 	repo := repository.New(postgresDB, redisDB, a.config)
 	srv := service.New(tokenManager, a.hasher, repo)
 	r := router.New(a.config, a.log, srv)
@@ -94,12 +93,19 @@ func (a *App) Run() {
 
 	a.log.Info("server stopped")
 
-	//err = storage.Client.Disconnect(context.Background())
-	//if err != nil {
-	//	a.log.Error("error occurred on db shutting down", sl.Err(err))
-	//}
+	err = redisDB.Close()
+	if err != nil {
+		a.log.Error("error occurred on redis connection closing down", sl.Err(err))
+	}
 
-	a.log.Info("db disconnected")
+	a.log.Info("redis connection closed")
+
+	err = postgresDB.Close()
+	if err != nil {
+		a.log.Error("error occurred on postgresql connection closing down", sl.Err(err))
+	}
+
+	a.log.Info("postgres connection closed")
 }
 
 func initLogger(env string) *slog.Logger {
