@@ -7,7 +7,7 @@ import (
 	stdLog "log"
 
 	"github.com/fatih/color"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type PrettyHandlerOptions struct {

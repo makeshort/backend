@@ -4,14 +4,13 @@ import (
 	"backend/internal/app/middleware"
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/storage"
+	"backend/internal/app/service/repository"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/lib/random"
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 	neturl "net/url"
 )
@@ -60,19 +59,10 @@ func (h *Handler) CreateUrl(ctx *gin.Context) {
 		alias = random.Generate(AliasLength)
 	}
 
-	id := ctx.GetString(middleware.ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Error("error occurred while parsing user id from hex to ObjectID",
-			slog.String("id", id),
-			sl.Err(err),
-		)
-		response.SendAuthFailedError(ctx)
-		return
-	}
+	userID := ctx.GetString(middleware.ContextUserID)
 
-	urlID, err := h.service.Storage.CreateURL(ctx, parsedUrl, alias, userID)
-	if errors.Is(err, storage.ErrAliasAlreadyExists) {
+	urlID, err := h.service.Repository.Url.Create(ctx, parsedUrl, alias, userID)
+	if errors.Is(err, repository.ErrAliasAlreadyExists) {
 		log.Debug("alias already exists",
 			slog.String("alias", alias),
 		)
@@ -90,12 +80,12 @@ func (h *Handler) CreateUrl(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, response.UrlCreated{
-		ID:    urlID.Hex(),
+		ID:    urlID,
 		Url:   body.Url,
 		Alias: alias,
 	})
 	log.Info("url saved",
-		slog.String("id", urlID.Hex()),
+		slog.String("id", urlID),
 		slog.String("url", parsedUrl),
 		slog.String("alias", alias),
 	)
@@ -121,20 +111,11 @@ func (h *Handler) UpdateUrl(ctx *gin.Context) {
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
-	hexUrlID := ctx.Param("id")
-	urlID, err := primitive.ObjectIDFromHex(hexUrlID)
-	if err != nil {
-		log.Error("error occurred while parsing url id from hex to ObjectID",
-			slog.String("id", hexUrlID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusInternalServerError, "url id is invalid")
-		return
-	}
+	urlID := ctx.Param("id")
 
 	var body request.UrlUpdate
 
-	if err = ctx.BindJSON(&body); err != nil {
+	if err := ctx.BindJSON(&body); err != nil {
 		log.Debug("error occurred while decode request body", sl.Err(err))
 		response.SendInvalidRequestBodyError(ctx)
 		return
@@ -149,10 +130,10 @@ func (h *Handler) UpdateUrl(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.Storage.UpdateUrl(ctx, urlID, body.Alias, parsedUrl)
+	url, err := h.service.Repository.Url.Update(ctx, urlID, body.Alias, parsedUrl)
 	if err != nil {
 		log.Error("error occurred while updating url",
-			slog.String("id", hexUrlID),
+			slog.String("id", urlID),
 			sl.Err(err),
 		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't update url")
@@ -160,9 +141,9 @@ func (h *Handler) UpdateUrl(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response.UrlUpdated{
-		ID:    hexUrlID,
-		Url:   body.Url,
-		Alias: body.Alias,
+		ID:    urlID,
+		Url:   url.LongURL,
+		Alias: url.ShortURL,
 	})
 }
 
@@ -185,40 +166,21 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
-	hexUrlID := ctx.Param("id")
+	urlID := ctx.Param("id")
 
-	urlID, err := primitive.ObjectIDFromHex(hexUrlID)
-	if err != nil {
-		log.Error("error occurred while parsing user id from hex to ObjectID",
-			slog.String("id", hexUrlID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusNotFound, "no url with this id")
-		return
-	}
+	userID := ctx.GetString(middleware.ContextUserID)
 
-	hexUserID := ctx.GetString(middleware.ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(hexUserID)
-	if err != nil {
-		log.Error("error occurred while parsing user id from hex to ObjectID",
-			slog.String("id", hexUserID),
-			sl.Err(err),
-		)
-		response.SendAuthFailedError(ctx)
-		return
-	}
-
-	url, err := h.service.Storage.GetUrlByID(ctx, urlID)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	url, err := h.service.Repository.Url.GetByID(ctx, urlID)
+	if errors.Is(err, repository.ErrURLNotFound) {
 		log.Debug("url doesn't exists",
-			slog.String("id", hexUrlID),
+			slog.String("id", urlID),
 		)
 		response.SendError(ctx, http.StatusNotFound, "url not found")
 		return
 	}
 	if err != nil {
 		log.Error("error while getting url",
-			slog.String("id", hexUrlID),
+			slog.String("id", urlID),
 			sl.Err(err),
 		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't get url")
@@ -227,27 +189,27 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 
 	if url.UserID != userID {
 		log.Debug("now url's owner",
-			slog.String("id", hexUrlID),
-			slog.String("alias", url.Alias),
-			slog.String("user_id", userID.Hex()),
-			slog.String("owner_id", url.UserID.Hex()),
+			slog.String("id", urlID),
+			slog.String("alias", url.ShortURL),
+			slog.String("user_id", userID),
+			slog.String("owner_id", url.UserID),
 		)
 		response.SendError(ctx, http.StatusForbidden, "url was not created by you")
 		return
 	}
 
-	err = h.service.Storage.DeleteURL(ctx, url.Alias)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	err = h.service.Repository.Url.Delete(ctx, url.ID)
+	if errors.Is(err, repository.ErrURLNotFound) {
 		log.Debug("no url to delete",
-			slog.String("alias", url.Alias),
+			slog.String("alias", url.ShortURL),
 		)
 		response.SendError(ctx, http.StatusNotFound, "no url to delete")
 		return
 	}
 	if err != nil {
 		log.Error("error occurred while deleting url",
-			slog.String("id", hexUrlID),
-			slog.String("alias", url.Alias),
+			slog.String("id", urlID),
+			slog.String("alias", url.ShortURL),
 			sl.Err(err),
 		)
 		response.SendError(ctx, http.StatusInternalServerError, "failed to delete url")
@@ -256,8 +218,8 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 
 	ctx.Status(http.StatusOK)
 	log.Info("url deleted successfully",
-		slog.String("id", hexUrlID),
-		slog.String("alias", url.Alias),
+		slog.String("id", urlID),
+		slog.String("alias", url.ShortURL),
 	)
 }
 
@@ -270,8 +232,8 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 
 	alias := ctx.Param("alias")
 
-	url, err := h.service.Storage.GetUrlByAlias(ctx, alias)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	url, err := h.service.Repository.Url.GetByShortUrl(ctx, alias)
+	if errors.Is(err, repository.ErrURLNotFound) {
 		response.SendError(ctx, http.StatusNotFound, "url not found")
 		return
 	}
@@ -284,7 +246,7 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 		return
 	}
 
-	err = h.service.Storage.IncrementRedirectsCounter(ctx, url.Alias)
+	err = h.service.Repository.Url.IncrementRedirectsCounter(ctx, url.ID)
 	if err != nil {
 		log.Error("error while incrementing requests counter",
 			slog.String("alias", alias),
@@ -293,10 +255,10 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 	}
 
 	log.Debug("redirected",
-		slog.String("url", url.Link),
+		slog.String("url", url.LongURL),
 		slog.String("alias", alias),
 	)
-	ctx.Redirect(http.StatusPermanentRedirect, url.Link)
+	ctx.Redirect(http.StatusPermanentRedirect, url.LongURL)
 }
 
 // validateUrl validates URL and return validated email and boolean is email valid.
