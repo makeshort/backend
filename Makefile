@@ -5,7 +5,7 @@ lint:
 	golangci-lint run -D govet -E bodyclose -E contextcheck -E dupl -E goconst
 
 test:
-	go test -race ./..
+	go test -race ./...
 
 build:
 	go build -o ./.bin/makeshort-backend ./cmd/makeshort-backend/main.go

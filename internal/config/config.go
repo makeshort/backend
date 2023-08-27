@@ -15,12 +15,13 @@ const (
 )
 
 type Config struct {
-	Env      string `yaml:"env" env-required:"true"`
-	HashSalt string `yaml:"hash_salt" env-required:"true"`
-	Token    Token  `yaml:"token" env-required:"true"`
-	Cookie   Cookie `yaml:"cookie"`
-	Db       Db     `yaml:"db" env-required:"true"`
-	Server   Server `yaml:"http" env-required:"true"`
+	Env      string     `yaml:"env" env-required:"true"`
+	HashSalt string     `yaml:"hash_salt" env-required:"true"`
+	Token    Token      `yaml:"token" env-required:"true"`
+	Cookie   Cookie     `yaml:"cookie"`
+	Postgres PostgresDB `yaml:"postgres" env-required:"true"`
+	Redis    Redis      `yaml:"redis" env-required:"true"`
+	Server   Server     `yaml:"http" env-required:"true"`
 }
 
 type Token struct {
@@ -47,8 +48,19 @@ type TokenRefresh struct {
 	TTL time.Duration `yaml:"ttl"`
 }
 
-type Db struct {
-	ConnectionURI string `yaml:"connection_uri" env-required:"true"`
+type PostgresDB struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	User     string `yaml:"user"`
+	Name     string `yaml:"name"`
+	Password string `yaml:"password"`
+	ModeSSL  string `yaml:"sslmode"`
+}
+
+type Redis struct {
+	Host     string `yaml:"host"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
 
 type Server struct {

@@ -1,4 +1,4 @@
-env: "local" # or dev, prod
+env: "local" # or dev, prod, test
 hash_salt: ""
 
 token:
@@ -19,5 +19,16 @@ http:
   timeout: 4s
   idle_timeout: 60s
 
-db:
-  connection_uri: ""
+postgres:
+  host: ""
+  port: ""
+  user: ""
+  name: ""
+  password: ""
+  sslmode: ""
+
+redis:
+  host: ""
+  username: ""
+  password: ""
+
