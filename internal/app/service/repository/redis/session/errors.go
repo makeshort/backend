@@ -3,14 +3,14 @@ package session
 import "errors"
 
 var (
-	errSessionNotExists          = errors.New("repo.session: session doesn't exists")
-	errRefreshTokenAlreadyExists = errors.New("repo.session: this refresh token already exists")
+	ErrSessionNotExists          = errors.New("repo.session: session doesn't exists")
+	ErrRefreshTokenAlreadyExists = errors.New("repo.session: this refresh token already exists")
 )
 
 func IsErrSessionNotExists(err error) bool {
-	return errors.Is(err, errSessionNotExists)
+	return errors.Is(err, ErrSessionNotExists)
 }
 
 func IsErrRefreshTokenAlreadyExists(err error) bool {
-	return errors.Is(err, errRefreshTokenAlreadyExists)
+	return errors.Is(err, ErrRefreshTokenAlreadyExists)
 }

@@ -3,6 +3,8 @@ package user
 import (
 	"backend/internal/app/service/repository/postgres/url"
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/jmoiron/sqlx"
 	"time"
 )
@@ -33,16 +35,20 @@ func (p *Postgres) Create(ctx context.Context, email string, username string, pa
 		return "", row.Err()
 	}
 
-	if err := row.Scan(&id); err != nil {
-		return "", err
+	err := row.Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrUserAlreadyExists
 	}
 
-	return id, nil
+	return id, err
 }
 
 func (p *Postgres) Delete(ctx context.Context, id string) error {
 	query := "DELETE FROM users WHERE id = $1"
 	row := p.db.QueryRowContext(ctx, query, id)
+	if errors.Is(row.Err(), sql.ErrNoRows) {
+		return ErrUserNotExists
+	}
 
 	return row.Err()
 }
@@ -53,6 +59,9 @@ func (p *Postgres) GetByID(ctx context.Context, id string) (User, error) {
 	query := "SELECT * FROM users WHERE id = $1"
 
 	err := p.db.GetContext(ctx, &user, query, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return user, ErrUserNotExists
+	}
 
 	return user, err
 }
@@ -63,6 +72,9 @@ func (p *Postgres) GetByCredentials(ctx context.Context, email string, passwordH
 	query := "SELECT * FROM users WHERE email = $1 AND password_hash = $2"
 
 	err := p.db.GetContext(ctx, &user, query, email, passwordHash)
+	if errors.Is(err, sql.ErrNoRows) {
+		return user, ErrUserNotExists
+	}
 
 	return user, err
 }

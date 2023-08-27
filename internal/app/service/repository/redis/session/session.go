@@ -34,7 +34,7 @@ func (r *Redis) Create(ctx context.Context, refreshToken string, userID string, 
 		return err
 	}
 	if exists == 1 {
-		return errRefreshTokenAlreadyExists
+		return ErrRefreshTokenAlreadyExists
 	}
 
 	session := Session{
@@ -59,7 +59,7 @@ func (r *Redis) Close(ctx context.Context, refreshToken string) error {
 		return err
 	}
 	if exists == 0 {
-		return errSessionNotExists
+		return ErrSessionNotExists
 	}
 	return r.client.Del(ctx, refreshToken).Err()
 }
@@ -70,7 +70,7 @@ func (r *Redis) Get(ctx context.Context, refreshToken string) (Session, error) {
 		return Session{}, err
 	}
 	if exists == 0 {
-		return Session{}, errSessionNotExists
+		return Session{}, ErrSessionNotExists
 	}
 
 	marshalledData, err := r.client.Get(ctx, refreshToken).Result()
