@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -33,12 +32,6 @@ type RefreshSession struct {
 	UserAgent    string             `bson:"user_agent"`
 	CreatedAt    primitive.DateTime `bson:"created_at"`
 	ExpiresAt    primitive.DateTime `bson:"expires_at"`
-}
-
-type Storage interface {
-	CreateRefreshSession(ctx context.Context, userID primitive.ObjectID, refreshToken string, ip string, userAgent string) (primitive.ObjectID, error)
-	DeleteRefreshSession(ctx context.Context, refreshToken string) error
-	IsRefreshTokenValid(ctx context.Context, refreshToken string) (isRefreshTokenValid bool, ownerID primitive.ObjectID)
 }
 
 var (

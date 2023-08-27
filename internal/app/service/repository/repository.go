@@ -3,8 +3,11 @@ package repository
 import (
 	"backend/internal/app/service/repository/postgres/url"
 	"backend/internal/app/service/repository/postgres/user"
+	"backend/internal/app/service/repository/redis/session"
+	"backend/internal/config"
 	"context"
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 )
 
 type User interface {
@@ -24,15 +27,22 @@ type Url interface {
 	Delete(ctx context.Context, id string) error
 }
 
-type Repository struct {
-	User *user.Postgres
-	Url  *url.Postgres
-	// Session Session
+type Session interface {
+	Create(ctx context.Context, refreshToken string, userID string, ip string, userAgent string) error
+	Close(ctx context.Context, refreshToken string) error
+	Get(ctx context.Context, refreshToken string) (session.Session, error)
 }
 
-func New(db *sqlx.DB) *Repository {
+type Repository struct {
+	User    *user.Postgres
+	Url     *url.Postgres
+	Session *session.Redis
+}
+
+func New(postgresDB *sqlx.DB, redisDB *redis.Client, cfg *config.Config) *Repository {
 	return &Repository{
-		User: user.New(db),
-		Url:  url.New(db),
+		User:    user.New(postgresDB),
+		Url:     url.New(postgresDB),
+		Session: session.New(redisDB, cfg),
 	}
 }

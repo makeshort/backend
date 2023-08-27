@@ -6,7 +6,7 @@ import (
 	"backend/internal/app/service/hash"
 	"backend/internal/app/service/repository"
 	"backend/internal/app/service/repository/postgres"
-	"backend/internal/app/service/storage/mongo"
+	"backend/internal/app/service/repository/redis"
 	"backend/internal/app/service/token"
 	"backend/internal/config"
 	"backend/internal/lib/logger/prettyslog"
@@ -45,17 +45,22 @@ func (a *App) Run() {
 
 	a.log.Info("make.short backend running", slog.String("env", a.config.Env))
 
-	storage := mongo.New(a.config)
-	a.log.Info("mongo client started")
+	//storage := mongo.New(a.config)
+	//a.log.Info("mongo client started")
 
 	tokenManager := token.New(a.config)
-	db, err := postgres.New(a.config.Db)
+	postgresDB, err := postgres.New(a.config.Db)
 	if err != nil {
 		a.log.Error("error occurred while connecting to postgres", sl.Err(err))
 		os.Exit(1)
 	}
-	repo := repository.New(db)
-	srv := service.New(storage, tokenManager, a.hasher, repo)
+	redisDB, err := redis.New()
+	if err != nil {
+		a.log.Error("error occurred while connecting to redis", sl.Err(err))
+		os.Exit(1)
+	}
+	repo := repository.New(postgresDB, redisDB, a.config)
+	srv := service.New(tokenManager, a.hasher, repo)
 	r := router.New(a.config, a.log, srv)
 
 	server := &http.Server{
@@ -89,10 +94,10 @@ func (a *App) Run() {
 
 	a.log.Info("server stopped")
 
-	err = storage.Client.Disconnect(context.Background())
-	if err != nil {
-		a.log.Error("error occurred on db shutting down", sl.Err(err))
-	}
+	//err = storage.Client.Disconnect(context.Background())
+	//if err != nil {
+	//	a.log.Error("error occurred on db shutting down", sl.Err(err))
+	//}
 
 	a.log.Info("db disconnected")
 }
