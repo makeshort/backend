@@ -40,27 +40,24 @@ func (r *Redis) Create(ctx context.Context, refreshToken string, userID string, 
 		return err
 	}
 
-	cmd := r.client.Set(ctx, refreshToken, marshalledSession, r.config.Token.Refresh.TTL)
-	return cmd.Err()
+	return r.client.Set(ctx, refreshToken, marshalledSession, r.config.Token.Refresh.TTL).Err()
 }
 
 func (r *Redis) Close(ctx context.Context, refreshToken string) error {
-	cmd := r.client.Del(ctx, refreshToken)
-	return cmd.Err()
+	return r.client.Del(ctx, refreshToken).Err()
 }
 
 func (r *Redis) Get(ctx context.Context, refreshToken string) (Session, error) {
-	storedData, err := r.client.Get(ctx, refreshToken).Result()
+	marshalledData, err := r.client.Get(ctx, refreshToken).Result()
 	if err != nil {
 		return Session{}, err
 	}
 
-	// Unmarshal the JSON data back into your struct
-	var retrievedData Session
-	err = json.Unmarshal([]byte(storedData), &retrievedData)
+	var session Session
+	err = json.Unmarshal([]byte(marshalledData), &session)
 	if err != nil {
 		return Session{}, err
 	}
 
-	return retrievedData, nil
+	return session, nil
 }
