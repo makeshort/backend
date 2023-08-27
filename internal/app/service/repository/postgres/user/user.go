@@ -27,7 +27,7 @@ func New(db *sqlx.DB) *Postgres {
 }
 
 // Create creates a new user in database.
-// If user with unique fields already exists in database, function will return an ErrUserAlreadyExists.
+// If the user with unique fields already exists in database, the function will return an ErrUserAlreadyExists.
 func (p *Postgres) Create(ctx context.Context, email string, username string, passwordHash string) (string, error) {
 	var id string
 
@@ -47,7 +47,7 @@ func (p *Postgres) Create(ctx context.Context, email string, username string, pa
 }
 
 // Delete deletes a user by his ID from database.
-// If user not exists in database, function will return ErrUserNotExists.
+// If the user does not exist in database, the function will return ErrUserNotExists.
 func (p *Postgres) Delete(ctx context.Context, id string) error {
 	query := "DELETE FROM users WHERE id = $1"
 	res, err := p.db.ExecContext(ctx, query, id)
@@ -67,7 +67,7 @@ func (p *Postgres) Delete(ctx context.Context, id string) error {
 }
 
 // GetByID gets a user from database by his ID, and return as User.
-// If user not exists in database, function will return an ErrUserNotExists.
+// If the user does not exist in database, the function will return an ErrUserNotExists.
 func (p *Postgres) GetByID(ctx context.Context, id string) (User, error) {
 	var user User
 
@@ -82,7 +82,7 @@ func (p *Postgres) GetByID(ctx context.Context, id string) (User, error) {
 }
 
 // GetByCredentials gets a user by his credential info such as email and hashed password.
-// If user not exists in database, function will return an ErrUserNotExists.
+// If the user does not exist in database, the function will return an ErrUserNotExists.
 func (p *Postgres) GetByCredentials(ctx context.Context, email string, passwordHash string) (User, error) {
 	var user User
 
@@ -97,7 +97,7 @@ func (p *Postgres) GetByCredentials(ctx context.Context, email string, passwordH
 }
 
 // GetUrlsList gets all urls from database, that assigned to provided user ID.
-// If urls with this user ID not exists in database, function will return just an empty array.
+// If urls with this user ID do not exist in database, the function will return just an empty array.
 func (p *Postgres) GetUrlsList(ctx context.Context, id string) ([]url.URL, error) {
 	var urls []url.URL
 

@@ -57,7 +57,7 @@ func (r *Redis) Create(ctx context.Context, refreshToken string, userID string, 
 }
 
 // Close deletes a session from redis storage by refresh token.
-// If session not exists, function will return an ErrSessionNotExists.
+// If the session does not exist, the function will return an ErrSessionNotExists.
 func (r *Redis) Close(ctx context.Context, refreshToken string) error {
 	exists, err := r.client.Exists(ctx, refreshToken).Result()
 	if err != nil {
@@ -70,7 +70,7 @@ func (r *Redis) Close(ctx context.Context, refreshToken string) error {
 }
 
 // Get returns a Session from redis storage by refresh token.
-// If session not exists, function will return an ErrSessionNotExists.
+// If the session does not exist, the function will return an ErrSessionNotExists.
 func (r *Redis) Get(ctx context.Context, refreshToken string) (Session, error) {
 	exists, err := r.client.Exists(ctx, refreshToken).Result()
 	if err != nil {
