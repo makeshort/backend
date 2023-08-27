@@ -3,7 +3,7 @@ package middleware
 import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
-	"backend/internal/app/service/storage"
+	"backend/internal/app/service/repository"
 	"backend/internal/config"
 	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
@@ -85,7 +85,7 @@ func (m *Middleware) CheckOwner(ctx *gin.Context) {
 	userID := ctx.GetString(ContextUserID)
 
 	url, err := m.service.Repository.Url.GetByID(ctx, urlID)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	if errors.Is(err, repository.ErrURLNotFound) {
 		log.Debug("url not found",
 			slog.String("id", urlID),
 		)

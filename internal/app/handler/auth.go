@@ -3,7 +3,7 @@ package handler
 import (
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/storage"
+	"backend/internal/app/service/repository"
 	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
 	"errors"
@@ -156,7 +156,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, "", -1, h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
 	err = h.service.Repository.Session.Close(ctx, refreshToken)
-	if errors.Is(err, storage.ErrRefreshSessionNotFound) {
+	if errors.Is(err, repository.ErrRefreshSessionNotFound) {
 		log.Debug("refresh session not found")
 		response.SendError(ctx, http.StatusNotFound, "refresh session not found")
 		return

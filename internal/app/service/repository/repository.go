@@ -6,6 +6,7 @@ import (
 	"backend/internal/app/service/repository/redis/session"
 	"backend/internal/config"
 	"context"
+	"errors"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )
@@ -46,3 +47,11 @@ func New(postgresDB *sqlx.DB, redisDB *redis.Client, cfg *config.Config) *Reposi
 		Session: session.New(redisDB, cfg),
 	}
 }
+
+var (
+	ErrURLNotFound            = errors.New("url not found")
+	ErrAliasAlreadyExists     = errors.New("alias already exists")
+	ErrUserNotFound           = errors.New("user not found")
+	ErrUserAlreadyExists      = errors.New("user already exists")
+	ErrRefreshSessionNotFound = errors.New("refresh session not found")
+)

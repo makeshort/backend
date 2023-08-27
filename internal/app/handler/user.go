@@ -3,7 +3,7 @@ package handler
 import (
 	"backend/internal/app/middleware"
 	"backend/internal/app/response"
-	"backend/internal/app/service/storage"
+	"backend/internal/app/service/repository"
 	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
 	"errors"
@@ -68,7 +68,7 @@ func (h *Handler) DeleteUser(ctx *gin.Context) {
 	userID := ctx.GetString(middleware.ContextUserID)
 
 	err := h.service.Repository.User.Delete(ctx, userID)
-	if errors.Is(err, storage.ErrUserNotFound) {
+	if errors.Is(err, repository.ErrUserNotFound) {
 		log.Info("user not found")
 		response.SendError(ctx, http.StatusNotFound, "user not found")
 		return

@@ -4,7 +4,7 @@ import (
 	"backend/internal/app/middleware"
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/storage"
+	"backend/internal/app/service/repository"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/lib/random"
 	"backend/pkg/requestid"
@@ -62,7 +62,7 @@ func (h *Handler) CreateUrl(ctx *gin.Context) {
 	userID := ctx.GetString(middleware.ContextUserID)
 
 	urlID, err := h.service.Repository.Url.Create(ctx, parsedUrl, alias, userID)
-	if errors.Is(err, storage.ErrAliasAlreadyExists) {
+	if errors.Is(err, repository.ErrAliasAlreadyExists) {
 		log.Debug("alias already exists",
 			slog.String("alias", alias),
 		)
@@ -171,7 +171,7 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 	userID := ctx.GetString(middleware.ContextUserID)
 
 	url, err := h.service.Repository.Url.GetByID(ctx, urlID)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	if errors.Is(err, repository.ErrURLNotFound) {
 		log.Debug("url doesn't exists",
 			slog.String("id", urlID),
 		)
@@ -199,7 +199,7 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 	}
 
 	err = h.service.Repository.Url.Delete(ctx, url.ID)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	if errors.Is(err, repository.ErrURLNotFound) {
 		log.Debug("no url to delete",
 			slog.String("alias", url.ShortURL),
 		)
@@ -233,7 +233,7 @@ func (h *Handler) Redirect(ctx *gin.Context) {
 	alias := ctx.Param("alias")
 
 	url, err := h.service.Repository.Url.GetByShortUrl(ctx, alias)
-	if errors.Is(err, storage.ErrURLNotFound) {
+	if errors.Is(err, repository.ErrURLNotFound) {
 		response.SendError(ctx, http.StatusNotFound, "url not found")
 		return
 	}
