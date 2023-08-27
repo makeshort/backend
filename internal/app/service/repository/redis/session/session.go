@@ -18,6 +18,7 @@ type Session struct {
 	IP        string
 	UserAgent string
 	CreatedAt time.Time
+	ExpiresAt time.Time
 }
 
 func New(client *redis.Client, cfg *config.Config) *Redis {
@@ -28,11 +29,20 @@ func New(client *redis.Client, cfg *config.Config) *Redis {
 }
 
 func (r *Redis) Create(ctx context.Context, refreshToken string, userID string, ip string, userAgent string) error {
+	exists, err := r.client.Exists(ctx, refreshToken).Result()
+	if err != nil {
+		return err
+	}
+	if exists == 1 {
+		return errRefreshTokenAlreadyExists
+	}
+
 	session := Session{
 		UserID:    userID,
 		IP:        ip,
 		UserAgent: userAgent,
 		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().Add(r.config.Token.Refresh.TTL),
 	}
 
 	marshalledSession, err := json.Marshal(session)
@@ -44,10 +54,25 @@ func (r *Redis) Create(ctx context.Context, refreshToken string, userID string, 
 }
 
 func (r *Redis) Close(ctx context.Context, refreshToken string) error {
+	exists, err := r.client.Exists(ctx, refreshToken).Result()
+	if err != nil {
+		return err
+	}
+	if exists == 0 {
+		return errSessionNotExists
+	}
 	return r.client.Del(ctx, refreshToken).Err()
 }
 
 func (r *Redis) Get(ctx context.Context, refreshToken string) (Session, error) {
+	exists, err := r.client.Exists(ctx, refreshToken).Result()
+	if err != nil {
+		return Session{}, err
+	}
+	if exists == 0 {
+		return Session{}, errSessionNotExists
+	}
+
 	marshalledData, err := r.client.Get(ctx, refreshToken).Result()
 	if err != nil {
 		return Session{}, err
