@@ -6,7 +6,7 @@ services:
     image: "postgres:latest"
     restart: unless-stopped
     volumes:
-      - ./.database/postgres/data:/var/lib/postgresql/data
+      - ./.database/postgres/data:/var/lib/postgressql/data
     environment:
       - POSTGRES_PASSWORD
     ports:
@@ -26,7 +26,9 @@ services:
     image: "makeshort-backend:latest"
     restart: unless-stopped
     ports:
-      - "7931:7931"
+      - "8081:8081"
+    environment:
+      - CONFIG_PATH
     depends_on:
       - postgres
       - redis
