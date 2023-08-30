@@ -6,7 +6,7 @@ services:
     image: "postgres:latest"
     restart: unless-stopped
     volumes:
-      - ./.database/postgres/data:/var/lib/postgressql/data
+      - ./.database/postgres/data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD
     ports:
