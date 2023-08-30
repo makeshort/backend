@@ -14,6 +14,7 @@ import (
 type User interface {
 	Create(ctx context.Context, email string, username string, passwordHash string) (string, error)
 	GetByID(ctx context.Context, id string) (user.User, error)
+	GetByTelegramID(ctx context.Context, telegramID string) (user.User, error)
 	GetByCredentials(ctx context.Context, email string, passwordHash string) (user.User, error)
 	GetUrlsList(ctx context.Context, id string) ([]url.URL, error)
 	Delete(ctx context.Context, id string) error

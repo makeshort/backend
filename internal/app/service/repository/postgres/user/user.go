@@ -18,6 +18,7 @@ type User struct {
 	Email        string    `db:"email"`
 	Username     string    `db:"username"`
 	PasswordHash string    `db:"password_hash"`
+	TelegramID   string    `db:"telegram_id"`
 	CreatedAt    time.Time `db:"created_at"`
 }
 
@@ -74,6 +75,21 @@ func (p *Postgres) GetByID(ctx context.Context, id string) (User, error) {
 	query := "SELECT * FROM users WHERE id = $1"
 
 	err := p.db.GetContext(ctx, &user, query, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return user, ErrUserNotExists
+	}
+
+	return user, err
+}
+
+// GetByTelegramID gets a user from database by his telegram ID, and return as User.
+// If the user does not exist in database, the function will return an ErrUserNotExists.
+func (p *Postgres) GetByTelegramID(ctx context.Context, telegramID string) (User, error) {
+	var user User
+
+	query := "SELECT * FROM users WHERE telegram_id = $1"
+
+	err := p.db.GetContext(ctx, &user, query, telegramID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return user, ErrUserNotExists
 	}
