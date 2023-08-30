@@ -88,6 +88,7 @@ func (m *Middleware) UserIdentity(ctx *gin.Context) {
 			response.SendError(ctx, http.StatusInternalServerError, "can't get user")
 			return
 		}
+		
 		ctx.Set(ContextUserID, user.ID)
 		ctx.Next()
 	default:
