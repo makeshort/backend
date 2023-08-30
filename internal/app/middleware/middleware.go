@@ -4,6 +4,7 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/app/service"
 	"backend/internal/app/service/repository"
+	repoUser "backend/internal/app/service/repository/postgres/user"
 	"backend/internal/config"
 	"backend/internal/lib/logger/sl"
 	"backend/pkg/requestid"
@@ -51,7 +52,7 @@ func (m *Middleware) UserIdentity(ctx *gin.Context) {
 	}
 
 	headerParts := strings.Split(header, " ")
-	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+	if len(headerParts) != 2 {
 		log.Debug("auth header is invalid")
 		response.SendAuthFailedError(ctx)
 		return
@@ -63,15 +64,37 @@ func (m *Middleware) UserIdentity(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := m.service.TokenManager.ParseJWT(headerParts[1])
+	claims, err := m.service.TokenManager.ParseAccessToken(headerParts[1])
 	if err != nil {
 		log.Debug("can't parse token", sl.Err(err))
 		response.SendAuthFailedError(ctx)
 		return
 	}
 
-	ctx.Set(ContextUserID, claims.UserID)
-	ctx.Next()
+	tokenType := headerParts[0]
+	switch tokenType {
+	case "Bearer":
+		ctx.Set(ContextUserID, claims.ID)
+		ctx.Next()
+	case "Telegram":
+		user, err := m.service.Repository.User.GetByTelegramID(ctx, claims.ID)
+		if repoUser.IsErrUserNotExists(err) {
+			log.Debug("user not found", slog.String("telegram_id", claims.ID))
+			response.SendAuthFailedError(ctx)
+			return
+		}
+		if err != nil {
+			log.Error("error occurred while getting user", sl.Err(err), slog.String("telegram_id", claims.ID))
+			response.SendError(ctx, http.StatusInternalServerError, "can't get user")
+			return
+		}
+
+		ctx.Set(ContextUserID, user.ID)
+		ctx.Next()
+	default:
+		response.SendAuthFailedError(ctx)
+		return
+	}
 }
 
 // CheckOwner middleware checks if user owning URL with ID from parameter.

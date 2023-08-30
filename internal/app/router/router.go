@@ -68,7 +68,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 		{
 			user.GET("/:id", r.handler.GetUser)
 
-			// user.PATCH("/:id")
+			user.PATCH("/:id", r.middleware.UserIdentity, r.middleware.CheckMe, r.handler.UpdateUser)
 			user.DELETE("/:id", r.middleware.UserIdentity, r.middleware.CheckMe, r.handler.DeleteUser)
 			user.GET("/:id/urls", r.middleware.UserIdentity, r.middleware.CheckMe, r.handler.GetUserUrls)
 		}
@@ -82,10 +82,16 @@ func (r *Router) InitRoutes() *gin.Engine {
 // logRoutes logs all routes of Router.
 func (r *Router) logRoutes(routes gin.RoutesInfo) {
 	for _, route := range routes {
-		method := format.CompleteStringToLength(route.Method, 10, ' ')
-		path := format.CompleteStringToLength(route.Path, 25, ' ')
+		var method, path string
+		if r.config.Env == config.EnvLocal {
+			method = format.CompleteStringToLength(route.Method, 9, ' ')
+			path = format.CompleteStringToLength(route.Path, 25, ' ')
+		} else {
+			method = route.Method
+			path = route.Path
+		}
 
-		routeLog := fmt.Sprintf("%s%s --> %s", method, path, route.Handler)
+		routeLog := fmt.Sprintf("%s %s --> %s", method, path, route.Handler)
 
 		r.log.Debug(routeLog)
 	}

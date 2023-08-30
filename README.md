@@ -9,11 +9,12 @@ Authorization is performed by the `AccessToken` in `Authorization` header. Acces
 
 #### User:
 
-| Field    | Type   | Description          |
-|:---------|:-------|:---------------------|
-| id       | string | The ID of user       |
-| username | string | The username of user |
-| email    | string | The email of user    |
+| Field       | Type    | Description                     |
+|:------------|:--------|:--------------------------------|
+| id          | string  | The ID of user                  |
+| username    | string  | The username of user            |
+| email       | string  | The email of user               |
+| telegram_id | sstring | ID of assigned telegram account |
 
 #### URL:
 
