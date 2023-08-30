@@ -15,7 +15,7 @@ type Manager struct {
 
 type Claims struct {
 	jwt.StandardClaims
-	UserID string `json:"id"`
+	ID string `json:"id"`
 }
 
 type Pair struct {
