@@ -64,7 +64,7 @@ func (m *Middleware) UserIdentity(ctx *gin.Context) {
 		return
 	}
 
-	claims, err := m.service.TokenManager.ParseJWT(headerParts[1])
+	claims, err := m.service.TokenManager.ParseAccessToken(headerParts[1])
 	if err != nil {
 		log.Debug("can't parse token", sl.Err(err))
 		response.SendAuthFailedError(ctx)
