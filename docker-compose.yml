@@ -24,11 +24,11 @@ services:
   makeshort-backend:
     container_name: "makeshort-backend"
     image: "makeshort-backend:latest"
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
       - CONFIG_PATH
-    depends_on:
-      - postgres
-      - redis
