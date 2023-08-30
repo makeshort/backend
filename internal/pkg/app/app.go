@@ -32,6 +32,7 @@ type App struct {
 func New(cfg *config.Config) *App {
 	log := initLogger(cfg.Env)
 	hasher := hash.New(cfg.HashSalt)
+
 	return &App{
 		config: cfg,
 		log:    log,
@@ -71,7 +72,7 @@ func (a *App) Run() {
 	}
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil {
+		if err = server.ListenAndServe(); err != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
 				a.log.Error("failed to start server", sl.Err(err))
 			}
