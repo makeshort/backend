@@ -12,3 +12,12 @@ build:
 
 run: swag build
 	./.bin/makeshort-backend
+
+docker-build:
+	docker build -t makeshort-backend:latest .
+
+up: docker-build
+	docker compose up -d
+
+down:
+	docker compose down
