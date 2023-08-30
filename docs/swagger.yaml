@@ -64,7 +64,7 @@ definitions:
       username:
         type: string
     type: object
-host: http://206.189.97.170:8081
+host: 206.189.97.170:8081
 info:
   contact: {}
   description: API Server for URL Shortener Application

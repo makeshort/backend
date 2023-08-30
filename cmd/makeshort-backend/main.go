@@ -9,7 +9,7 @@ import (
 // @title                        URL Shortener App API
 // @version                      0.1
 // @description                  API Server for URL Shortener Application
-// @host                         http://206.189.97.170:8081
+// @host                         206.189.97.170:8081
 // @BasePath                     /api
 // @securityDefinitions.apikey   AccessToken
 // @in                           header
