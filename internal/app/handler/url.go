@@ -5,6 +5,7 @@ import (
 	"backend/internal/app/request"
 	"backend/internal/app/response"
 	"backend/internal/app/service/repository"
+	repoUrl "backend/internal/app/service/repository/postgres/url"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/lib/random"
 	"backend/pkg/requestid"
@@ -130,7 +131,10 @@ func (h *Handler) UpdateUrl(ctx *gin.Context) {
 		return
 	}
 
-	url, err := h.service.Repository.Url.Update(ctx, urlID, body.Alias, parsedUrl)
+	url, err := h.service.Repository.Url.Update(ctx, urlID, repoUrl.DTO{
+		LongURL:  body.Alias,
+		ShortURL: parsedUrl,
+	})
 	if err != nil {
 		log.Error("error occurred while updating url",
 			slog.String("id", urlID),

@@ -21,6 +21,11 @@ type URL struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
+type DTO struct {
+	LongURL  string `db:"long_url"`
+	ShortURL string `db:"short_url"`
+}
+
 // New returns a new instance of *Postgres.
 func New(db *sqlx.DB) *Postgres {
 	return &Postgres{db: db}
@@ -94,13 +99,13 @@ func (p *Postgres) IncrementRedirectsCounter(ctx context.Context, id string) err
 
 // Update updates an url in database. If url with provided ID does not exist,
 // the function will return an ErrUrlNotFound.
-// If some fields (short url or long url) are empty, they won't be updated.
-func (p *Postgres) Update(ctx context.Context, id string, shortUrl string, longUrl string) (URL, error) {
+// If some fields of DTO are empty, they won't be updated.
+func (p *Postgres) Update(ctx context.Context, id string, dto DTO) (URL, error) {
 	var url URL
 
 	query := "UPDATE urls SET short_url = CASE WHEN $1::varchar(10) IS NOT NULL AND $1 <> '' THEN $1 ELSE short_url END, long_url = CASE WHEN $2::varchar(2048) IS NOT NULL AND $2 <> '' THEN $2 ELSE long_url END WHERE id = $3 RETURNING *"
 
-	row := p.db.QueryRowContext(ctx, query, shortUrl, longUrl, id)
+	row := p.db.QueryRowContext(ctx, query, dto.ShortURL, dto.LongURL, id)
 
 	err := row.Scan(&url.ID, &url.UserID, &url.LongURL, &url.ShortURL, &url.Redirects, &url.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {

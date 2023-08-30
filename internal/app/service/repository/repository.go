@@ -17,6 +17,7 @@ type User interface {
 	GetByTelegramID(ctx context.Context, telegramID string) (user.User, error)
 	GetByCredentials(ctx context.Context, email string, passwordHash string) (user.User, error)
 	GetUrlsList(ctx context.Context, id string) ([]url.URL, error)
+	Update(ctx context.Context, id string, dto user.DTO) (user.User, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -25,7 +26,7 @@ type Url interface {
 	GetByID(ctx context.Context, id string) (url.URL, error)
 	GetByShortUrl(ctx context.Context, shortUrl string) (url.URL, error)
 	IncrementRedirectsCounter(ctx context.Context, id string) error
-	Update(ctx context.Context, id string, shortUrl string, longUrl string) (url.URL, error)
+	Update(ctx context.Context, id string, dto url.DTO) (url.URL, error)
 	Delete(ctx context.Context, id string) error
 }
 
