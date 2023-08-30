@@ -31,4 +31,4 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - CONFIG_PATH
+      - CONFIG_PATH="./config/dev.yml"

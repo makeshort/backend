@@ -44,12 +44,12 @@ func (m *Manager) GenerateTokenPair(userID string) (*Pair, error) {
 }
 
 // ParseJWT parses a JWT to Claims.
-func (s *Manager) ParseJWT(rawToken string) (*Claims, error) {
-	return s.parseToken(rawToken, s.accessSecret)
+func (m *Manager) ParseJWT(rawToken string) (*Claims, error) {
+	return m.parseToken(rawToken, m.accessSecret)
 }
 
 // parseToken parses JWT with signing key.
-func (s *Manager) parseToken(rawToken string, signingKey []byte) (*Claims, error) {
+func (m *Manager) parseToken(rawToken string, signingKey []byte) (*Claims, error) {
 	parsedToken, err := jwt.ParseWithClaims(rawToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
@@ -70,10 +70,10 @@ func (s *Manager) parseToken(rawToken string, signingKey []byte) (*Claims, error
 }
 
 // generateJWT generates a new JWT.
-func (s *Manager) generateJWT(userID string, signingKey []byte) (string, error) {
+func (m *Manager) generateJWT(userID string, signingKey []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &Claims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(s.config.Token.Access.TTL).Unix(),
+			ExpiresAt: time.Now().Add(m.config.Token.Access.TTL).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		userID,
@@ -82,6 +82,6 @@ func (s *Manager) generateJWT(userID string, signingKey []byte) (string, error) 
 }
 
 // generateRefreshToken generates a new Refresh Token.
-func (s *Manager) generateRefreshToken() string {
+func (m *Manager) generateRefreshToken() string {
 	return uuid.NewString()
 }

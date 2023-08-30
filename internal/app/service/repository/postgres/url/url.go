@@ -33,7 +33,7 @@ func New(db *sqlx.DB) *Postgres {
 
 // Create creates a new url in database. If url with provided short url already exists,
 // function will return an ErrShortUrlAlreadyExists.
-func (p *Postgres) Create(ctx context.Context, longUrl string, shortUrl string, userID string) (string, error) {
+func (p *Postgres) Create(ctx context.Context, userID string, longUrl string, shortUrl string) (string, error) {
 	var id string
 
 	query := "INSERT INTO urls (user_id, long_url, short_url) values ($1, $2, $3) RETURNING id"

@@ -62,7 +62,7 @@ func (h *Handler) CreateUrl(ctx *gin.Context) {
 
 	userID := ctx.GetString(middleware.ContextUserID)
 
-	urlID, err := h.service.Repository.Url.Create(ctx, parsedUrl, alias, userID)
+	urlID, err := h.service.Repository.Url.Create(ctx, userID, parsedUrl, alias)
 	if errors.Is(err, repository.ErrAliasAlreadyExists) {
 		log.Debug("alias already exists",
 			slog.String("alias", alias),
