@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: "makeshort-postgres"
+    image: "postgres:latest"
+    restart: unless-stopped
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD
+    ports:
+      - "5432:5432"
+
+  redis:
+    container_name: "makeshort-redis"
+    image: "redis/redis-stack-server:latest"
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_ARGS
+
+  makeshort-backend:
+    container_name: "makeshort-backend"
+    image: "makeshort-backend:latest"
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - CONFIG_PATH=./config/dev.yml

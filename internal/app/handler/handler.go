@@ -3,7 +3,7 @@ package handler
 import (
 	"backend/internal/app/service"
 	"backend/internal/config"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type Handler struct {
@@ -12,6 +12,7 @@ type Handler struct {
 	service *service.Service
 }
 
+// New returns a new instance of Handler.
 func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Handler {
 	return &Handler{
 		config:  cfg,

@@ -7,7 +7,7 @@ import (
 	stdLog "log"
 
 	"github.com/fatih/color"
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type PrettyHandlerOptions struct {
@@ -89,7 +89,6 @@ func (h *PrettyHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 }
 
 func (h *PrettyHandler) WithGroup(name string) slog.Handler {
-	// TODO: implement
 	return &PrettyHandler{
 		Handler: h.Handler.WithGroup(name),
 		logger:  h.logger,

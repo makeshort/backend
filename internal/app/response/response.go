@@ -10,19 +10,28 @@ type Error struct {
 }
 
 type User struct {
+	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Username string `json:"username"`
 }
 
 type URL struct {
+	ID        string `json:"id"`
 	Url       string `json:"url"`
 	Alias     string `json:"alias"`
 	Redirects int    `json:"redirects"`
 }
 
 type UrlCreated struct {
+	ID    string `json:"id"`
 	Url   string `json:"url"`
 	Alias string `json:"alias"`
+}
+
+type UrlUpdated struct {
+	ID    string `json:"id"`
+	Url   string `json:"url,omitempty"`
+	Alias string `json:"alias,omitempty"`
 }
 
 type TokenPair struct {
@@ -30,17 +39,17 @@ type TokenPair struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// InvalidRequestBody sends an error response with 400 Bad Request status code.
-func InvalidRequestBody(ctx *gin.Context) {
+// SendInvalidRequestBodyError sends an error response with 400 Bad Request status code.
+func SendInvalidRequestBodyError(ctx *gin.Context) {
 	SendError(ctx, http.StatusBadRequest, "invalid request body")
 }
 
-// InvalidAuthToken sends an error response with 401 Unauthorized status code.
-func InvalidAuthToken(ctx *gin.Context) {
-	SendError(ctx, http.StatusUnauthorized, "invalid auth token")
+// SendAuthFailedError sends an error response with 401 Unauthorized status code.
+func SendAuthFailedError(ctx *gin.Context) {
+	SendError(ctx, http.StatusUnauthorized, "auth failed")
 }
 
-// SendError sends an error response with message field.
+// SendError sends an error response with some status code and message field.
 func SendError(ctx *gin.Context, statusCode int, message string) {
 	ctx.AbortWithStatusJSON(statusCode, Error{Message: message})
 }
