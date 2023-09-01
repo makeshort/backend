@@ -3,8 +3,8 @@ package handler
 import (
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/repository"
 	"backend/internal/lib/logger/sl"
+	"backend/internal/service/repository"
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"

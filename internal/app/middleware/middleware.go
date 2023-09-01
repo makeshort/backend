@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"backend/internal/app/response"
-	"backend/internal/app/service"
-	"backend/internal/app/service/repository"
-	repoUser "backend/internal/app/service/repository/postgres/user"
 	"backend/internal/config"
 	"backend/internal/lib/logger/sl"
+	"backend/internal/service"
+	"backend/internal/service/repository"
+	repoUser "backend/internal/service/repository/postgres/user"
 	"backend/pkg/requestid"
 	"errors"
 	"fmt"

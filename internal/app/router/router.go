@@ -3,9 +3,9 @@ package router
 import (
 	"backend/internal/app/handler"
 	"backend/internal/app/middleware"
-	"backend/internal/app/service"
 	"backend/internal/config"
 	"backend/internal/lib/logger/format"
+	"backend/internal/service"
 	"backend/pkg/requestid"
 	"fmt"
 	"github.com/gin-gonic/gin"

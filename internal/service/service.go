@@ -1,9 +1,9 @@
 package service
 
 import (
-	"backend/internal/app/service/hash"
-	"backend/internal/app/service/repository"
-	"backend/internal/app/service/token"
+	"backend/internal/service/hash"
+	"backend/internal/service/repository"
+	"backend/internal/service/token"
 )
 
 type Service struct {

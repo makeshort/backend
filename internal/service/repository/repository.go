@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"backend/internal/app/service/repository/postgres/url"
-	"backend/internal/app/service/repository/postgres/user"
-	"backend/internal/app/service/repository/redis/session"
 	"backend/internal/config"
+	"backend/internal/service/repository/postgres/url"
+	"backend/internal/service/repository/postgres/user"
+	"backend/internal/service/repository/redis/session"
 	"context"
 	"errors"
 	"github.com/jmoiron/sqlx"

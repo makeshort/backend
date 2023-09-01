@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"backend/internal/app/service"
 	"backend/internal/config"
+	"backend/internal/service"
 	"log/slog"
 )
 
