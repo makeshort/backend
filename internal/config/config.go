@@ -18,7 +18,7 @@ type Config struct {
 	Env      string     `yaml:"env" env-required:"true"`
 	HashSalt string     `yaml:"hash_salt" env-required:"true"`
 	Token    Token      `yaml:"token" env-required:"true"`
-	Cookie   Cookie     `yaml:"cookie"`
+	Cookie   Cookie     `yaml:"cookie" env-required:"true"`
 	Postgres PostgresDB `yaml:"postgres" env-required:"true"`
 	Redis    Redis      `yaml:"redis" env-required:"true"`
 	Server   Server     `yaml:"http" env-required:"true"`

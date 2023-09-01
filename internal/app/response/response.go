@@ -49,6 +49,10 @@ func SendAuthFailedError(ctx *gin.Context) {
 	SendError(ctx, http.StatusUnauthorized, "auth failed")
 }
 
+func SendSomethingWentWrong(ctx *gin.Context) {
+	SendError(ctx, http.StatusInternalServerError, "something went wrong")
+}
+
 // SendError sends an error response with some status code and message field.
 func SendError(ctx *gin.Context, statusCode int, message string) {
 	ctx.AbortWithStatusJSON(statusCode, Error{Message: message})

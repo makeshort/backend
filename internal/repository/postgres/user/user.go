@@ -1,7 +1,7 @@
 package user
 
 import (
-	"backend/internal/app/service/repository/postgres/url"
+	"backend/internal/repository/postgres/url"
 	"context"
 	"database/sql"
 	"errors"

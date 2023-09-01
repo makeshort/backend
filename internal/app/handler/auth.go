@@ -3,8 +3,10 @@ package handler
 import (
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/repository"
+	"backend/internal/app/service/auth"
 	"backend/internal/lib/logger/sl"
+	"backend/internal/repository"
+	"backend/internal/repository/postgres/user"
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -38,25 +40,29 @@ func (h *Handler) Register(ctx *gin.Context) {
 		return
 	}
 
-	isEmailValid := checkEmailValidity(body.Email)
-	if !isEmailValid {
-		log.Debug("email is invalid",
+	id, err := h.service.Auth.Register(ctx, auth.UserRegisterDTO{
+		Email:    body.Email,
+		Username: body.Username,
+		Password: body.Password,
+	})
+	if errors.Is(err, user.ErrUserAlreadyExists) || errors.Is(err, auth.ErrInvalidEmail) {
+		log.Debug(err.Error(),
+			slog.String("email", body.Username),
+			slog.String("username", body.Username),
+		)
+		response.SendError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err != nil {
+		log.Error("error occurred while registering user",
+			sl.Err(err),
 			slog.String("email", body.Email),
 		)
-		response.SendError(ctx, http.StatusBadRequest, "email is invalid")
+		response.SendSomethingWentWrong(ctx)
 		return
 	}
 
-	passwordHash := h.service.Hasher.Create(body.Password)
-
-	id, err := h.service.Repository.User.Create(ctx, body.Email, body.Username, passwordHash)
-	if err != nil {
-		log.Error("error occurred while creating user", sl.Err(err))
-		response.SendError(ctx, http.StatusInternalServerError, "can't create user")
-		return
-	}
-
-	log.Info("user created",
+	log.Info("user successfully created",
 		slog.String("id", id),
 		slog.String("username", body.Username),
 		slog.String("email", body.Email),
@@ -94,31 +100,13 @@ func (h *Handler) Login(ctx *gin.Context) {
 		return
 	}
 
-	passwordHash := h.service.Hasher.Create(body.Password)
-
-	user, err := h.service.Repository.User.GetByCredentials(ctx, body.Email, passwordHash)
+	tokenPair, err := h.service.Auth.Login(ctx, auth.UserLoginDTO{
+		Email:    body.Email,
+		Password: body.Password,
+	})
 	if err != nil {
-		log.Debug("user not found in database",
-			slog.String("email", body.Email),
-		)
-		response.SendError(ctx, http.StatusBadRequest, "user not found")
-		return
-	}
-
-	tokenPair, err := h.service.TokenManager.GenerateTokenPair(user.ID)
-	if err != nil {
-		log.Error("error occurred while generating token pair",
-			slog.String("user_id", user.ID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusInternalServerError, "can't create token pair")
-		return
-	}
-
-	err = h.service.Repository.Session.Create(ctx, tokenPair.RefreshToken, user.ID, ctx.ClientIP(), ctx.Request.UserAgent())
-	if err != nil {
-		log.Error("error occurred while creating refresh session in database", sl.Err(err))
-		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
+		log.Error("error occurred while user logging in", sl.Err(err))
+		response.SendSomethingWentWrong(ctx)
 		return
 	}
 
@@ -155,7 +143,7 @@ func (h *Handler) Logout(ctx *gin.Context) {
 	}
 	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, "", -1, h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
-	err = h.service.Repository.Session.Close(ctx, refreshToken)
+	err = h.service.Auth.Logout(ctx, refreshToken)
 	if errors.Is(err, repository.ErrRefreshSessionNotFound) {
 		log.Debug("refresh session not found")
 		response.SendError(ctx, http.StatusNotFound, "refresh session not found")
@@ -196,42 +184,19 @@ func (h *Handler) RefreshTokens(ctx *gin.Context) {
 		return
 	}
 
-	session, err := h.service.Repository.Session.Get(ctx, refreshToken)
+	tokenPair, err := h.service.Auth.Refresh(ctx, refreshToken)
+	if errors.Is(err, auth.ErrInvalidRefreshToken) {
+		log.Error(err.Error())
+		response.SendError(ctx, http.StatusUnauthorized, "invalid refresh token")
+		return
+	}
 	if err != nil {
-		log.Debug("invalid refresh token")
-		response.SendError(ctx, http.StatusForbidden, "invalid refresh token")
+		log.Error("error occurred while refreshing session", sl.Err(err))
+		response.SendSomethingWentWrong(ctx)
 		return
 	}
 
-	err = h.service.Repository.Session.Close(ctx, refreshToken)
-	if err != nil {
-		log.Error("error occurred while deleting refresh session", sl.Err(err))
-		response.SendError(ctx, http.StatusInternalServerError, "can't delete refresh session")
-	}
-
-	tokenPair, err := h.service.TokenManager.GenerateTokenPair(session.UserID)
-	if err != nil {
-		log.Error("error occurred while generating token pair",
-			slog.String("user_id", session.UserID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusInternalServerError, "can't create token pair")
-		return
-	}
-
-	err = h.service.Repository.Session.Create(ctx, tokenPair.RefreshToken, session.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
-	if err != nil {
-		log.Error("error occurred while creating refresh session",
-			slog.String("user_id", session.UserID),
-			sl.Err(err),
-		)
-		response.SendError(ctx, http.StatusInternalServerError, "can't create refresh session")
-		return
-	}
-
-	log.Info("refresh session successfully created",
-		slog.String("user_id", session.UserID),
-	)
+	log.Info("refresh session successfully created")
 
 	ctx.SetCookie(h.config.Cookie.RefreshToken.Name, tokenPair.RefreshToken, int(h.config.Token.Refresh.TTL.Seconds()), h.config.Cookie.RefreshToken.Path, h.config.Cookie.RefreshToken.Domain, false, true)
 
