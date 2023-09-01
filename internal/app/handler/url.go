@@ -4,20 +4,21 @@ import (
 	"backend/internal/app/middleware"
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/storage"
+	"backend/internal/app/service/repository"
+	repoUrl "backend/internal/app/service/repository/postgres/url"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/lib/random"
+	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 	neturl "net/url"
 )
 
 const AliasLength = 6
 
-// CreateURL     Creates a URL in database, assigned to user
+// CreateUrl     Creates a URL in database, assigned to user.
 // @Summary      Create URL
 // @Description  Creates a URL in database, assigned to user
 // @Security     AccessToken
@@ -31,18 +32,25 @@ const AliasLength = 6
 // @Failure      409  {object}    response.Error
 // @Failure      500  {object}    response.Error
 // @Router       /url             [post]
-func (h *Handler) CreateURL(ctx *gin.Context) {
+func (h *Handler) CreateUrl(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.CreateUrl"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
 	var body request.URL
 
 	if err := ctx.BindJSON(&body); err != nil {
-		h.log.Error("can't decode request body")
-		response.InvalidRequestBody(ctx)
+		log.Debug("error occurred while decode request body", sl.Err(err))
+		response.SendInvalidRequestBodyError(ctx)
 		return
 	}
 
 	parsedUrl, isUrlValid := validateUrl(body.Url)
 	if !isUrlValid {
-		h.log.Error("url is invalid", slog.String("url", parsedUrl))
+		log.Error("provided url is in invalid format",
+			slog.String("url", body.Url),
+		)
 		response.SendError(ctx, http.StatusBadRequest, "url is invalid")
 		return
 	}
@@ -52,113 +60,212 @@ func (h *Handler) CreateURL(ctx *gin.Context) {
 		alias = random.Generate(AliasLength)
 	}
 
-	id := ctx.GetString(middleware.ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err), slog.String("id", id))
-		response.InvalidAuthToken(ctx)
-		return
-	}
+	userID := ctx.GetString(middleware.ContextUserID)
 
-	_, err = h.service.Storage.CreateURL(ctx, parsedUrl, alias, userID)
-	if errors.Is(err, storage.ErrAliasAlreadyExists) {
-		h.log.Info("alias already exists", slog.String("alias", alias))
+	urlID, err := h.service.Repository.Url.Create(ctx, userID, parsedUrl, alias)
+	if errors.Is(err, repository.ErrAliasAlreadyExists) {
+		log.Debug("alias already exists",
+			slog.String("alias", alias),
+		)
 		response.SendError(ctx, http.StatusConflict, "alias already exists")
 		return
 	}
-
 	if err != nil {
-		h.log.Error("can't save url", sl.Err(err))
+		log.Error("error occurred while saving url to database",
+			slog.String("url", parsedUrl),
+			slog.String("alias", alias),
+			sl.Err(err),
+		)
 		response.SendError(ctx, http.StatusInternalServerError, "can't save url")
 		return
 	}
 
 	ctx.JSON(http.StatusCreated, response.UrlCreated{
+		ID:    urlID,
 		Url:   body.Url,
 		Alias: alias,
 	})
-	h.log.Info("url saved", slog.String("url", parsedUrl), slog.String("alias", alias))
+	log.Info("url saved",
+		slog.String("id", urlID),
+		slog.String("url", parsedUrl),
+		slog.String("alias", alias),
+	)
 }
 
-// DeleteURL     Deletes a URL
+// UpdateUrl     Updates an URL.
+// @Summary      Update URL
+// @Description  Updates an url
+// @Security     AccessToken
+// @Tags         url
+// @Param        id path string true "id"
+// @Produce      json
+// @Param        input body       request.URL true "Url data"
+// @Success      200  {integer}     integer 1
+// @Failure      401  {object}      response.Error
+// @Failure      403  {object}      response.Error
+// @Failure      404  {object}      response.Error
+// @Failure      500  {object}      response.Error
+// @Router       /url/{id}          [patch]
+func (h *Handler) UpdateUrl(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.UpdateUrl"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
+	urlID := ctx.Param("id")
+
+	var body request.UrlUpdate
+
+	if err := ctx.BindJSON(&body); err != nil {
+		log.Debug("error occurred while decode request body", sl.Err(err))
+		response.SendInvalidRequestBodyError(ctx)
+		return
+	}
+
+	parsedUrl, isUrlValid := validateUrl(body.Url)
+	if body.Url != "" && !isUrlValid {
+		log.Error("provided url is in invalid format",
+			slog.String("url", body.Url),
+		)
+		response.SendError(ctx, http.StatusBadRequest, "url is invalid")
+		return
+	}
+
+	url, err := h.service.Repository.Url.Update(ctx, urlID, repoUrl.DTO{
+		LongURL:  body.Alias,
+		ShortURL: parsedUrl,
+	})
+	if err != nil {
+		log.Error("error occurred while updating url",
+			slog.String("id", urlID),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't update url")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.UrlUpdated{
+		ID:    urlID,
+		Url:   url.LongURL,
+		Alias: url.ShortURL,
+	})
+}
+
+// DeleteUrl     Deletes a URL.
 // @Summary      Delete URL
 // @Description  Deletes an url from database
 // @Security     AccessToken
 // @Tags         url
-// @Param        alias path string true "alias"
+// @Param        id path string true "id"
 // @Produce      json
 // @Success      200  {integer}     integer 1
 // @Failure      401  {object}      response.Error
 // @Failure      403  {object}      response.Error
 // @Failure      404  {object}      response.Error
 // @Failure      500  {object}      response.Error
-// @Router       /url/{alias}       [delete]
-func (h *Handler) DeleteURL(ctx *gin.Context) {
-	alias := ctx.Param("alias")
+// @Router       /url/{id}          [delete]
+func (h *Handler) DeleteUrl(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.DeleteUrl"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
 
-	id := ctx.GetString(middleware.ContextUserID)
-	userID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		h.log.Error("can't parse user id fom hex string to primitive.ObjectID", sl.Err(err))
-		response.InvalidAuthToken(ctx)
+	urlID := ctx.Param("id")
+
+	userID := ctx.GetString(middleware.ContextUserID)
+
+	url, err := h.service.Repository.Url.GetByID(ctx, urlID)
+	if errors.Is(err, repository.ErrURLNotFound) {
+		log.Debug("url doesn't exists",
+			slog.String("id", urlID),
+		)
+		response.SendError(ctx, http.StatusNotFound, "url not found")
 		return
 	}
-
-	url, err := h.service.Storage.GetUrlByAlias(ctx, alias)
 	if err != nil {
-		if errors.Is(err, storage.ErrURLNotFound) {
-			h.log.Info("url doesn't exists", slog.String("alias", alias))
-		} else {
-			h.log.Error("error while getting url", slog.String("alias", alias), sl.Err(err))
-		}
-		response.SendError(ctx, http.StatusNotFound, "url not found")
+		log.Error("error while getting url",
+			slog.String("id", urlID),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't get url")
 		return
 	}
 
 	if url.UserID != userID {
+		log.Debug("now url's owner",
+			slog.String("id", urlID),
+			slog.String("alias", url.ShortURL),
+			slog.String("user_id", userID),
+			slog.String("owner_id", url.UserID),
+		)
 		response.SendError(ctx, http.StatusForbidden, "url was not created by you")
 		return
 	}
 
-	err = h.service.Storage.DeleteURL(ctx, alias)
+	err = h.service.Repository.Url.Delete(ctx, url.ID)
+	if errors.Is(err, repository.ErrURLNotFound) {
+		log.Debug("no url to delete",
+			slog.String("alias", url.ShortURL),
+		)
+		response.SendError(ctx, http.StatusNotFound, "no url to delete")
+		return
+	}
 	if err != nil {
-		if errors.Is(err, storage.ErrURLNotFound) {
-			h.log.Info("no url to delete")
-			response.SendError(ctx, http.StatusNotFound, "no url to delete")
-		} else {
-			h.log.Error("error while deleting url", slog.String("alias", alias), sl.Err(err))
-			response.SendError(ctx, http.StatusInternalServerError, "failed to delete url")
-		}
+		log.Error("error occurred while deleting url",
+			slog.String("id", urlID),
+			slog.String("alias", url.ShortURL),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "failed to delete url")
 		return
 	}
 
 	ctx.Status(http.StatusOK)
-	h.log.Info("url deleted", slog.String("alias", alias))
+	log.Info("url deleted successfully",
+		slog.String("id", urlID),
+		slog.String("alias", url.ShortURL),
+	)
 }
 
+// Redirect redirects user from /{alias} to URL assigned to this alias.
 func (h *Handler) Redirect(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.DeleteUrl"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
 	alias := ctx.Param("alias")
 
-	url, err := h.service.Storage.GetUrlByAlias(ctx, alias)
-	if err != nil {
-		if errors.Is(err, storage.ErrURLNotFound) {
-			h.log.Info("url not found", slog.String("alias", alias))
-		} else {
-			h.log.Error("error while getting url", sl.Err(err))
-		}
+	url, err := h.service.Repository.Url.GetByShortUrl(ctx, alias)
+	if errors.Is(err, repository.ErrURLNotFound) {
 		response.SendError(ctx, http.StatusNotFound, "url not found")
 		return
 	}
-
-	ctx.Redirect(http.StatusPermanentRedirect, url.Link)
-	err = h.service.Storage.IncrementRedirectsCounter(ctx, alias)
 	if err != nil {
-		h.log.Error("error while incrementing requests counter", slog.String("alias", alias))
+		log.Error("error occurred while getting url",
+			slog.String("alias", alias),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't found url")
+		return
 	}
 
-	h.log.Info("redirected", slog.String("url", url.Link), slog.String("alias", alias))
+	err = h.service.Repository.Url.IncrementRedirectsCounter(ctx, url.ID)
+	if err != nil {
+		log.Error("error while incrementing requests counter",
+			slog.String("alias", alias),
+			sl.Err(err),
+		)
+	}
+
+	log.Debug("redirected",
+		slog.String("url", url.LongURL),
+		slog.String("alias", alias),
+	)
+	ctx.Redirect(http.StatusPermanentRedirect, url.LongURL)
 }
 
+// validateUrl validates URL and return validated email and boolean is email valid.
 func validateUrl(rawUrl string) (string, bool) {
 	parsedUrl, err := neturl.ParseRequestURI(rawUrl)
 	if err != nil {

@@ -10,6 +10,10 @@ config/*.yml
 *.so
 *.dylib
 
+# Ignore Redis dump files and Postgres data
+*.rdb
+.database/
+
 # Mac OS X files
 .DS_Store
 

@@ -39,6 +39,8 @@ definitions:
     properties:
       alias:
         type: string
+      id:
+        type: string
       redirects:
         type: integer
       url:
@@ -48,6 +50,8 @@ definitions:
     properties:
       alias:
         type: string
+      id:
+        type: string
       url:
         type: string
     type: object
@@ -55,10 +59,12 @@ definitions:
     properties:
       email:
         type: string
+      id:
+        type: string
       username:
         type: string
     type: object
-host: localhost:8081
+host: 206.189.97.170:8081
 info:
   contact: {}
   description: API Server for URL Shortener Application
@@ -210,13 +216,13 @@ paths:
       summary: Create URL
       tags:
       - url
-  /url/{alias}:
+  /url/{id}:
     delete:
       description: Deletes an url from database
       parameters:
-      - description: alias
+      - description: id
         in: path
-        name: alias
+        name: id
         required: true
         type: string
       produces:
@@ -247,9 +253,57 @@ paths:
       summary: Delete URL
       tags:
       - url
-  /user/me:
+    patch:
+      description: Updates an url
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Url data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.URL'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - AccessToken: []
+      summary: Update URL
+      tags:
+      - url
+  /user/{id}:
     delete:
       description: Delete me from database
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -270,9 +324,77 @@ paths:
       summary: Delete me
       tags:
       - user
-  /user/me/urls:
+    get:
+      description: Get user's information
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Get user
+      tags:
+      - user
+    patch:
+      description: Update user entity in  database
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: integer
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - AccessToken: []
+      summary: Update me
+      tags:
+      - user
+  /user/{id}/urls:
     get:
       description: Get all URLs created by user
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
