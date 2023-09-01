@@ -13,7 +13,7 @@ build:
 run: swag build
 	./.bin/makeshort-backend
 
-docker-build:
+docker-build: swag
 	docker build -t makeshort-backend:latest .
 
 up: docker-build
