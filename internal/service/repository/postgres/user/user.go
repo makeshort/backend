@@ -18,15 +18,15 @@ type User struct {
 	Email        string    `db:"email"`
 	Username     string    `db:"username"`
 	PasswordHash string    `db:"password_hash"`
-	TelegramID   string    `db:"telegram_id"`
+	TelegramID   *string   `db:"telegram_id"`
 	CreatedAt    time.Time `db:"created_at"`
 }
 
 type DTO struct {
-	Email        string `db:"email"`
-	Username     string `db:"username"`
-	PasswordHash string `db:"password_hash"`
-	TelegramID   string `db:"telegram_id"`
+	Email        string  `db:"email"`
+	Username     string  `db:"username"`
+	PasswordHash string  `db:"password_hash"`
+	TelegramID   *string `db:"telegram_id"`
 }
 
 // New returns a new instance of *Postgres with *sqlx.DB field.
