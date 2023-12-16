@@ -59,11 +59,11 @@ func (r *Router) InitRoutes() *gin.Engine {
 			auth.POST("/refresh", r.handler.RefreshTokens)
 		}
 
-		url := api.Group("/url", r.middleware.UserIdentity)
+		url := api.Group("/url") // TODO: After tests, move user identity here
 		{
 			url.POST("/", r.handler.CreateUrl)
-			url.PATCH("/:id", r.middleware.CheckOwner, r.handler.UpdateUrl)
-			url.DELETE("/:id", r.middleware.CheckOwner, r.handler.DeleteUrl)
+			url.PATCH("/:id", r.middleware.UserIdentity, r.middleware.CheckOwner, r.handler.UpdateUrl)
+			url.DELETE("/:id", r.middleware.UserIdentity, r.middleware.CheckOwner, r.handler.DeleteUrl)
 		}
 
 		user := api.Group("/user")
