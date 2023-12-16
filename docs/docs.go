@@ -551,6 +551,44 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/{alias}": {
+            "get": {
+                "description": "Redirects to an URL",
+                "tags": [
+                    "url"
+                ],
+                "summary": "Redirect to URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "308": {
+                        "description": "Permanent Redirect",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

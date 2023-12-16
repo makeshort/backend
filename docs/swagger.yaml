@@ -71,6 +71,31 @@ info:
   title: URL Shortener App API
   version: "0.1"
 paths:
+  /{alias}:
+    get:
+      description: Redirects to an URL
+      parameters:
+      - description: alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      responses:
+        "308":
+          description: Permanent Redirect
+          schema:
+            type: integer
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Redirect to URL
+      tags:
+      - url
   /auth/refresh:
     post:
       description: Create a new token pair
