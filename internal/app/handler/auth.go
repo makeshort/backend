@@ -3,8 +3,9 @@ package handler
 import (
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/repository"
 	"backend/internal/lib/logger/sl"
+	"backend/internal/service/repository"
+	userRepo "backend/internal/service/repository/postgres/user"
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -97,11 +98,16 @@ func (h *Handler) Login(ctx *gin.Context) {
 	passwordHash := h.service.Hasher.Create(body.Password)
 
 	user, err := h.service.Repository.User.GetByCredentials(ctx, body.Email, passwordHash)
-	if err != nil {
+	if errors.Is(err, userRepo.ErrUserNotExists) {
 		log.Debug("user not found in database",
 			slog.String("email", body.Email),
 		)
 		response.SendError(ctx, http.StatusBadRequest, "user not found")
+		return
+	}
+	if err != nil {
+		log.Debug("error occurred while getting user", sl.Err(err))
+		response.SendError(ctx, http.StatusInternalServerError, "can't get user")
 		return
 	}
 

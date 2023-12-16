@@ -4,10 +4,10 @@ import (
 	"backend/internal/app/middleware"
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/repository"
-	repoUrl "backend/internal/app/service/repository/postgres/url"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/lib/random"
+	"backend/internal/service/repository"
+	repoUrl "backend/internal/service/repository/postgres/url"
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -228,6 +228,15 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 }
 
 // Redirect redirects user from /{alias} to URL assigned to this alias.
+// Redirect      Redirects to an URL.
+// @Summary      Redirect to URL
+// @Description  Redirects to an URL
+// @Tags         url
+// @Param        alias path string true "alias"
+// @Success      308  {integer}     integer 1
+// @Failure      404  {object}      response.Error
+// @Failure      500  {object}      response.Error
+// @Router       /{alias}           [get]
 func (h *Handler) Redirect(ctx *gin.Context) {
 	log := h.log.With(
 		slog.String("op", "handler.DeleteUrl"),

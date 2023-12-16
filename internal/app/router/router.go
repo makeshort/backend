@@ -3,9 +3,9 @@ package router
 import (
 	"backend/internal/app/handler"
 	"backend/internal/app/middleware"
-	"backend/internal/app/service"
 	"backend/internal/config"
 	"backend/internal/lib/logger/format"
+	"backend/internal/service"
 	"backend/pkg/requestid"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -43,10 +43,12 @@ func (r *Router) InitRoutes() *gin.Engine {
 	router.Use(requestid.New)
 	router.Use(r.middleware.RequestLog)
 
-	router.GET("/:alias", r.handler.Redirect)
+	// router.GET("/:alias", r.handler.Redirect)
 
 	api := router.Group("/api")
 	{
+		api.GET("/:alias", r.handler.Redirect)
+
 		api.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 		auth := api.Group("/auth")

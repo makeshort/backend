@@ -6,7 +6,7 @@
         "contact": {},
         "version": "0.1"
     },
-    "host": "206.189.97.170:8081",
+    "host": "localhost:8081",
     "basePath": "/api",
     "paths": {
         "/auth/refresh": {
@@ -532,6 +532,44 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/{alias}": {
+            "get": {
+                "description": "Redirects to an URL",
+                "tags": [
+                    "url"
+                ],
+                "summary": "Redirect to URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "308": {
+                        "description": "Permanent Redirect",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.Error"
                         }

@@ -551,6 +551,44 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/{alias}": {
+            "get": {
+                "description": "Redirects to an URL",
+                "tags": [
+                    "url"
+                ],
+                "summary": "Redirect to URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "308": {
+                        "description": "Permanent Redirect",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -667,7 +705,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1",
-	Host:             "206.189.97.170:8081",
+	Host:             "localhost:8081",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "URL Shortener App API",

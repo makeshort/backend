@@ -4,9 +4,9 @@ import (
 	"backend/internal/app/middleware"
 	"backend/internal/app/request"
 	"backend/internal/app/response"
-	"backend/internal/app/service/repository"
-	"backend/internal/app/service/repository/postgres/user"
 	"backend/internal/lib/logger/sl"
+	"backend/internal/service/repository"
+	"backend/internal/service/repository/postgres/user"
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -83,7 +83,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		Email:        body.Email,
 		Username:     body.Username,
 		PasswordHash: h.service.Hasher.Create(body.Password),
-		TelegramID:   body.TelegramID,
+		TelegramID:   &body.TelegramID,
 	})
 	if errors.Is(err, repository.ErrUserNotFound) {
 		log.Info("user not found")
@@ -105,7 +105,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 		slog.String("username", updatedUser.Username),
 		slog.String("email", updatedUser.Email),
 		slog.String("password_hash", updatedUser.PasswordHash),
-		slog.String("telegram_id", updatedUser.TelegramID),
+		slog.String("telegram_id", *updatedUser.TelegramID),
 	)
 }
 

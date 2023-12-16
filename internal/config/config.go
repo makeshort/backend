@@ -15,13 +15,14 @@ const (
 )
 
 type Config struct {
-	Env      string     `yaml:"env" env-required:"true"`
-	HashSalt string     `yaml:"hash_salt" env-required:"true"`
-	Token    Token      `yaml:"token" env-required:"true"`
-	Cookie   Cookie     `yaml:"cookie"`
-	Postgres PostgresDB `yaml:"postgres" env-required:"true"`
-	Redis    Redis      `yaml:"redis" env-required:"true"`
-	Server   Server     `yaml:"http" env-required:"true"`
+	Env                 string     `yaml:"env" env-required:"true"`
+	HashSalt            string     `yaml:"hash_salt" env-required:"true"`
+	Token               Token      `yaml:"token" env-required:"true"`
+	Cookie              Cookie     `yaml:"cookie"`
+	Postgres            PostgresDB `yaml:"postgres" env-required:"true"`
+	Redis               Redis      `yaml:"redis" env-required:"true"`
+	Server              Server     `yaml:"http" env-required:"true"`
+	ServerDefaultCookie string     `yaml:"server_default_cookie" env-default:"X-Makeshort-Request"`
 }
 
 type Token struct {
