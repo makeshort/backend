@@ -33,4 +33,4 @@ jobs:
             git checkout master;
             git pull;
             docker compose down;
-            docker compose up -t;
+            docker compose up -d;
