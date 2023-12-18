@@ -30,5 +30,7 @@ services:
     restart: unless-stopped
     ports:
       - "8081:8081"
+    volumes:
+      - $(go env GOCACHE):/root/.cache/go-build
     environment:
       - CONFIG_PATH=./config/dev.yml
