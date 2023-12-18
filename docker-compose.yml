@@ -23,12 +23,14 @@ services:
 
   makeshort-backend:
     container_name: "makeshort-backend"
-    image: "jus1d/makeshort-backend:latest"
+    image: "makeshort-backend:latest"
     depends_on:
       - postgres
       - redis
     restart: unless-stopped
     ports:
       - "8081:8081"
+    volumes:
+      - $(go env GOCACHE):/root/.cache/go-build
     environment:
       - CONFIG_PATH=./config/dev.yml
