@@ -7,13 +7,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     steps:
-      - name: Docker login
+      - name: Checkout code
         uses: actions/checkout@v2
-        env:
-          DOCKER_USER: ${{ secrets.DOCKER_USER }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Docker login
         run: |
           docker login -u $DOCKER_USER -p $DOCKER_PASSWORD;
       - name: Docker build
@@ -32,17 +33,4 @@ jobs:
             git checkout master;
             git pull;
             docker compose down;
-#            docker build -t makeshort-backend .;
             docker compose up -t;
-
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v2
-#      - name: Set up Go
-#        uses: actions/setup-go@v2
-#        with:
-#          go-version: 1.21
-#      - name: Build app
-#        run: |
-#          go mod download
-#          make build
