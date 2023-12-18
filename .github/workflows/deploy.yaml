@@ -17,9 +17,9 @@ jobs:
         run: |
           docker login -u $DOCKER_USER -p $DOCKER_PASSWORD;
       - name: Docker build
-        run: docker build -t ${{ secrets.DOCKER_USER }}/makeshort-backend .
+        run: docker build -t ${{ secrets.DOCKER_USER }}/makeshort-backend .;
       - name: Push image
-        run: docker push ${{ secrets.DOCKER_USER }}/makeshort-backend
+        run: docker push ${{ secrets.DOCKER_USER }}/makeshort-backend;
 
       - name: Run command on remote server
         uses: D3rHase/ssh-command-action@v0.2.2
