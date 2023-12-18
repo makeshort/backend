@@ -1,26 +1,46 @@
-name: Build App
+name: Deploy
 
 on:
   push:
-    branches: [master, develop]
+    branches: [master]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      HOST: ${{ secrets.HOST }}
-      DEPLOY_DIRECTORY: /root/apps/makeshort/backend
-      CONFIG_PATH: /root/apps/makeshort/backend/config/prod.yaml
-      ENV_FILE_PATH: /root/apps/makeshort/backend/config.env
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Set up Go
-        uses: actions/setup-go@v2
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#      - name: Setup Go
+#        uses: actions/setup-go@v2
+#        with:
+#          go-version: 1.21.5
+#      - name: Build app
+#        run: |
+#          go mod download
+#          go build -o ./.bin/makeshort-backend ./cmd/makeshort-backend/main.go
+      - name: Run command on remote server
+        uses: D3rHase/ssh-command-action@v0.2.2
         with:
-          go-version: 1.21
-      - name: Build app
-        run: |
-          go mod download
-          make build
+          host: ${{secrets.SSH_HOST}}
+          user: ${{secrets.SSH_USER}}
+          private_key: ${{secrets.SSH_PRIVATE_KEY}}
+          command: |
+            cd ${{ secrets.PROJECT_DIR }};
+            git checkout master;
+            git pull;
+            docker compose down
+            docker build -t makeshort-backend .
+            docker compose up -t
+
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#      - name: Set up Go
+#        uses: actions/setup-go@v2
+#        with:
+#          go-version: 1.21
+#      - name: Build app
+#        run: |
+#          go mod download
+#          make build

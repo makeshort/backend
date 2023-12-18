@@ -42,6 +42,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 	router.Use(gin.Recovery())
 	router.Use(requestid.New)
 	router.Use(r.middleware.RequestLog)
+	router.Use(r.middleware.RefreshSession) // try to refresh session on every request
 
 	// router.GET("/:alias", r.handler.Redirect)
 
