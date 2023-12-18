@@ -29,9 +29,9 @@ jobs:
             cd ${{ secrets.PROJECT_DIR }};
             git checkout master;
             git pull;
-            docker compose down
-            docker build -t makeshort-backend .
-            docker compose up -t
+            docker compose down;
+            docker build -t makeshort-backend .;
+            docker compose up -t;
 
 #    steps:
 #      - name: Checkout repository
