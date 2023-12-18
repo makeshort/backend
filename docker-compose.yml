@@ -23,7 +23,7 @@ services:
 
   makeshort-backend:
     container_name: "makeshort-backend"
-    image: "jus1d/makeshort-backend:latest"
+    image: "makeshort-backend:latest"
     depends_on:
       - postgres
       - redis

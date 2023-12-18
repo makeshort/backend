@@ -2,26 +2,13 @@ name: Deploy
 
 on:
   push:
-    branches: [master]
+    branches: [master, develop]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Docker login
-        run: |
-          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD;
-      - name: Docker build
-        run: docker build -t ${{ secrets.DOCKER_USER }}/makeshort-backend .;
-      - name: Push image
-        run: docker push ${{ secrets.DOCKER_USER }}/makeshort-backend;
-
       - name: Run command on remote server
         uses: D3rHase/ssh-command-action@v0.2.2
         with:
@@ -33,4 +20,5 @@ jobs:
             git checkout master;
             git pull;
             docker compose down;
+            docker build -t makeshort-backend .;
             docker compose up -d;
