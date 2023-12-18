@@ -37,6 +37,64 @@ func New(cfg *config.Config, log *slog.Logger, service *service.Service) *Middle
 	}
 }
 
+func (m *Middleware) RefreshSession(ctx *gin.Context) {
+	log := m.log.With(
+		slog.String("op", "middleware.RefreshSession"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+
+	defer ctx.Next()
+
+	refreshToken, err := ctx.Cookie(m.config.Cookie.RefreshToken.Name)
+	if err != nil {
+		log.Debug("no refresh token cookie to refresh",
+			sl.Err(err),
+		)
+		return
+	}
+
+	session, err := m.service.Repository.Session.Get(ctx, refreshToken)
+	if err != nil {
+		log.Debug("invalid refresh token to refresh")
+		return
+	}
+
+	err = m.service.Repository.Session.Close(ctx, refreshToken)
+	if err != nil {
+		log.Error("error occurred while deleting refresh session", sl.Err(err))
+		return
+	}
+
+	tokenPair, err := m.service.TokenManager.GenerateTokenPair(session.UserID)
+	if err != nil {
+		log.Error("error occurred while generating token pair",
+			slog.String("user_id", session.UserID),
+			sl.Err(err),
+		)
+		return
+	}
+
+	err = m.service.Repository.Session.Create(ctx, tokenPair.RefreshToken, session.UserID, ctx.ClientIP(), ctx.Request.UserAgent())
+	if err != nil {
+		log.Error("error occurred while creating refresh session",
+			slog.String("user_id", session.UserID),
+			sl.Err(err),
+		)
+		return
+	}
+
+	log.Info("refresh session successfully created",
+		slog.String("user_id", session.UserID),
+	)
+
+	ctx.SetCookie(m.config.Cookie.RefreshToken.Name, tokenPair.RefreshToken, int(m.config.Token.Refresh.TTL.Seconds()), m.config.Cookie.RefreshToken.Path, m.config.Cookie.RefreshToken.Domain, false, true)
+
+	ctx.JSON(http.StatusOK, response.TokenPair{
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+	})
+}
+
 // UserIdentity parse access token in Authorization header and set UserID in context.
 func (m *Middleware) UserIdentity(ctx *gin.Context) {
 	log := m.log.With(
