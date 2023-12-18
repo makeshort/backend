@@ -191,12 +191,12 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 		return
 	}
 
-	if url.UserID != userID {
+	if *url.UserID != userID {
 		log.Debug("now url's owner",
 			slog.String("id", urlID),
 			slog.String("alias", url.ShortURL),
 			slog.String("user_id", userID),
-			slog.String("owner_id", url.UserID),
+			slog.String("owner_id", *url.UserID),
 		)
 		response.SendError(ctx, http.StatusForbidden, "url was not created by you")
 		return
@@ -239,7 +239,7 @@ func (h *Handler) DeleteUrl(ctx *gin.Context) {
 // @Router       /{alias}           [get]
 func (h *Handler) Redirect(ctx *gin.Context) {
 	log := h.log.With(
-		slog.String("op", "handler.DeleteUrl"),
+		slog.String("op", "handler.Redirect"),
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
