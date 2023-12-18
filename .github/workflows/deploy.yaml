@@ -12,8 +12,9 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     steps:
-      - name: Docker login
+      - name: Checkout code
         uses: actions/checkout@v2
+      - name: Docker login
         run: |
           docker login -u $DOCKER_USER -p $DOCKER_PASSWORD;
       - name: Docker build
