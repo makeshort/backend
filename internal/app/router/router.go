@@ -45,9 +45,11 @@ func (r *Router) InitRoutes() *gin.Engine {
 
 	// router.GET("/:alias", r.handler.Redirect)
 
+	router.GET("/s/:alias", r.handler.Redirect)
+
 	api := router.Group("/api")
 	{
-		api.GET("/:alias", r.handler.Redirect)
+		//api.GET("/:alias", r.handler.Redirect)
 
 		api.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

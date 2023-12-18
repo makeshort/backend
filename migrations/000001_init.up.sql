@@ -13,7 +13,7 @@ CREATE TABLE users
 CREATE TABLE urls
 (
     id uuid DEFAULT uuid_generate_v4() NOT NULL UNIQUE,
-    user_id uuid REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    user_id uuid DEFAULT NULL REFERENCES users(id) ON DELETE CASCADE,
     long_url varchar(2048) NOT NULL,
     short_url varchar(20) NOT NULL UNIQUE,
     redirects int DEFAULT 0,

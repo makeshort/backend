@@ -124,7 +124,7 @@ func (m *Middleware) CheckOwner(ctx *gin.Context) {
 		return
 	}
 
-	if url.UserID != userID {
+	if *url.UserID != userID {
 		response.SendError(ctx, http.StatusForbidden, "not your url")
 		return
 	}

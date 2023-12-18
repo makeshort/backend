@@ -14,7 +14,7 @@ type Postgres struct {
 
 type URL struct {
 	ID        string    `db:"id"`
-	UserID    string    `db:"user_id"`
+	UserID    *string   `db:"user_id"`
 	LongURL   string    `db:"long_url"`
 	ShortURL  string    `db:"short_url"`
 	Redirects int       `db:"redirects"`
@@ -35,9 +35,32 @@ func New(db *sqlx.DB) *Postgres {
 // function will return an ErrShortUrlAlreadyExists.
 func (p *Postgres) Create(ctx context.Context, userID string, longUrl string, shortUrl string) (string, error) {
 	var id string
+	var err error
 
-	query := "INSERT INTO urls (user_id, long_url, short_url) values ($1, $2, $3) RETURNING id"
-	err := p.db.GetContext(ctx, &id, query, userID, longUrl, shortUrl)
+	if userID == "" {
+		query := "INSERT INTO urls (long_url, short_url) values ($1, $2) RETURNING id"
+		err = p.db.GetContext(ctx, &id, query, longUrl, shortUrl)
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrShortUrlAlreadyExists
+		}
+	} else {
+		query := "INSERT INTO urls (user_id, long_url, short_url) values ($1, $2, $3) RETURNING id"
+		err = p.db.GetContext(ctx, &id, query, userID, longUrl, shortUrl)
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrShortUrlAlreadyExists
+		}
+	}
+
+	return id, err
+}
+
+// CreateWithoutUserReference creates a new url in database, without reference to any user.
+// If url with provided short url already exists, function will return an ErrShortUrlAlreadyExists.
+func (p *Postgres) CreateWithoutUserReference(ctx context.Context, longUrl string, shortUrl string) (string, error) {
+	var id string
+
+	query := "INSERT INTO urls (long_url, short_url) VALUES ($1, $2) RETURNING id"
+	err := p.db.GetContext(ctx, &id, query, longUrl, shortUrl)
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", ErrShortUrlAlreadyExists
 	}
