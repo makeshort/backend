@@ -6,7 +6,7 @@ import (
 	"backend/internal/app/response"
 	"backend/internal/lib/logger/sl"
 	"backend/internal/service/repository"
-	"backend/internal/service/repository/postgres/user"
+	pgUser "backend/internal/service/repository/postgres/user"
 	"backend/pkg/requestid"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -31,7 +31,48 @@ func (h *Handler) GetUser(ctx *gin.Context) {
 		slog.String("request_id", requestid.Get(ctx)),
 	)
 
-	id := ctx.Param("id")
+	id, exists := ctx.Get(middleware.ContextUserID)
+	if !exists {
+		log.Debug("no user od in context provided")
+		response.SendError(ctx, http.StatusInternalServerError, "can't get user")
+		return
+	}
+
+	sid := id.(string)
+
+	user, err := h.service.Repository.User.GetByID(ctx, sid)
+	if err != nil {
+		log.Error("error occurred while getting user",
+			slog.String("id", sid),
+			sl.Err(err),
+		)
+		response.SendError(ctx, http.StatusInternalServerError, "can't get user")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response.User{
+		ID:       user.ID,
+		Email:    user.Email,
+		Username: user.Username,
+	})
+}
+
+// GetMe         Get information about authorized user.
+// @Summary      Get me
+// @Description  Get information about authorized user.
+// @Security     AccessToken
+// @Tags         user
+// @Produce      json
+// @Success      200  {object}        response.User
+// @Failure      404  {object}        response.Error
+// @Failure      500  {object}        response.Error
+// @Router       /user/me             [get]
+func (h *Handler) GetMe(ctx *gin.Context) {
+	log := h.log.With(
+		slog.String("op", "handler.GetMe"),
+		slog.String("request_id", requestid.Get(ctx)),
+	)
+	id := ctx.GetString(middleware.ContextUserID)
 
 	user, err := h.service.Repository.User.GetByID(ctx, id)
 	if err != nil {
@@ -79,7 +120,7 @@ func (h *Handler) UpdateUser(ctx *gin.Context) {
 
 	userID := ctx.GetString(middleware.ContextUserID)
 
-	updatedUser, err := h.service.Repository.User.Update(ctx, userID, user.DTO{
+	updatedUser, err := h.service.Repository.User.Update(ctx, userID, pgUser.DTO{
 		Email:        body.Email,
 		Username:     body.Username,
 		PasswordHash: h.service.Hasher.Create(body.Password),

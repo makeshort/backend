@@ -362,6 +362,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/me": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": []
+                    }
+                ],
+                "description": "Get information about authorized user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get me",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.User"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/user/{id}": {
             "get": {
                 "description": "Get user's information",

@@ -1,7 +1,6 @@
 FROM golang:1.21.5-alpine3.18 AS builder
 
 RUN go version
-RUN apk add git
 
 COPY ./ /makeshort-backend
 WORKDIR /makeshort-backend
