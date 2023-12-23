@@ -442,6 +442,29 @@ paths:
       summary: Get URLs
       tags:
       - user
+  /user/me:
+    get:
+      description: Get information about authorized user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      security:
+      - AccessToken: []
+      summary: Get me
+      tags:
+      - user
 securityDefinitions:
   AccessToken:
     in: header
